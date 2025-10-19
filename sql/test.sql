@@ -1,0 +1,1 @@
+SELECT blocks.chk,blocks.bucket,blocks.blockHash,blocks.layerHash FROM blocks where blocks.chk IN(288943903743040,270368705259413,222244500122432)

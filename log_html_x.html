@@ -1,0 +1,143 @@
+<<!DOCTYPE html>
+<html>
+<body>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:923 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630  /  h = 9723377558737
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:636 [++selectMainDataSqlCmd]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:645 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 layerHash = 9723377558737
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:763 [++exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:765 [ layerHash = 9723377558737 fileGuid= 99af7ac4-804b-4fa2-9362-c928c6e5b630
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:784 [EXIST fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =9723377558737ret = 0
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:785 [--exist]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:668 [_LAYER_HASH_ID = 9723377558737
+ ] </p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:716 [_S_CMD = SELECT buckets_and_blocks.idx,buckets_and_blocks.blockGuid,layers.layerGuid,blocks.status,blocks.chk,blocks.size,buckets_and_blocks.fileGuid FROM blocks  inner join buckets_and_blocks on blocks.blockHash = buckets_and_blocks.blockHash inner join layers on blocks.layerHash = layers.layerHash where  buckets_and_blocks.fileGuid like '99af7ac4-804b-4fa2-9362-c928c6e5b630' AND blocks.layerHash = 9723377558737
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:763 [++exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:765 [ layerHash = 9723377558737 fileGuid= 99af7ac4-804b-4fa2-9362-c928c6e5b630
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:784 [EXIST fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =9723377558737ret = 0
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:785 [--exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:599 [EXCEPTION DETECTED = Query result is empty!
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:901 [++actuallyRecordSet]</p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:914 [++firstPrototype]</p>
+<font color ='black'>|29-09-2025 15-20-38| file:layersHelper.hpp line:103 [++setLayers]</p>
+<font color ='black'>|29-09-2025 15-20-38| file:layers_API.hpp line:104 [++getLayersByFileGuid]</p>
+<font color ='#FF00FF'>|29-09-2025 15-20-38| file:layers_API.hpp line:140 [selectQueryStr = SELECT DISTINCT blocks.layerHash AS layerHash  FROM buckets_and_blocks  inner join blocks on buckets_and_blocks.blockHash = blocks.blockHash where  buckets_and_blocks.fileGuid like '99af7ac4-804b-4fa2-9362-c928c6e5b630'
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layers_API.hpp line:154 [THE_NEXT_STAGE!]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:layers_API.hpp line:165 [TRY TO RETRIEVE RECORDSET!]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:layers_API.hpp line:172 [recordSet.size() = 1
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:layers_API.hpp line:182 [--getLayersByFileGuid]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:325 [ ++DBG_VIEW(0)]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:331 [fields = layerGuid
+data = 2751bf33-79a7-483c-bbac-fe6e1473ecbb
+data = afcee0c6-452b-487e-a2c9-0389193ddb6a
+data = a2ffbb92-95bc-4bc9-8ca7-c2f87f855736
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:331 [fields = layerHash
+data = 74116826820253
+data = 46521899690840
+data = 9723377558737
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:331 [fields = layerId
+data = 1
+data = 2
+data = 3
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:333 [ --DBG_VIEW(0)]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:113 [ layers.size() = 3
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:layersHelper.hpp line:114 [--setLayers]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:183 [++getlayerSomeThingByName(layerHash)
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:325 [ ++DBG_VIEW(0)]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:331 [fields = layerGuid
+data = 2751bf33-79a7-483c-bbac-fe6e1473ecbb
+data = afcee0c6-452b-487e-a2c9-0389193ddb6a
+data = a2ffbb92-95bc-4bc9-8ca7-c2f87f855736
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:331 [fields = layerHash
+data = 74116826820253
+data = 46521899690840
+data = 9723377558737
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:331 [fields = layerId
+data = 1
+data = 2
+data = 3
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:layersHelper.hpp line:333 [ --DBG_VIEW(0)]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:923 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630  /  h = 74116826820253
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:636 [++selectMainDataSqlCmd]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:645 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 layerHash = 74116826820253
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:763 [++exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:765 [ layerHash = 74116826820253 fileGuid= 99af7ac4-804b-4fa2-9362-c928c6e5b630
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:784 [EXIST fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =74116826820253ret = 1
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:785 [--exist]</p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:651 [++selectMainDataSqlCmd]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:653 [++EXIST(fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 layerHash = 74116826820253)
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:654 [--selectMainDataSqlCmd]</p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:878 [++get]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:880 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =74116826820253
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:890 [_LAYER_HASH_ID = 74116826820253 _ret.size() = 7
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:891 [--get]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:923 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630  /  h = 46521899690840
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:636 [++selectMainDataSqlCmd]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:645 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 layerHash = 46521899690840
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:763 [++exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:765 [ layerHash = 46521899690840 fileGuid= 99af7ac4-804b-4fa2-9362-c928c6e5b630
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:784 [EXIST fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =46521899690840ret = 1
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:785 [--exist]</p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:651 [++selectMainDataSqlCmd]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:653 [++EXIST(fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 layerHash = 46521899690840)
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:654 [--selectMainDataSqlCmd]</p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:878 [++get]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:880 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =46521899690840
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:890 [_LAYER_HASH_ID = 46521899690840 _ret.size() = 7
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:891 [--get]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:923 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630  /  h = 9723377558737
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:636 [++selectMainDataSqlCmd]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:645 [fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 layerHash = 9723377558737
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:763 [++exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:765 [ layerHash = 9723377558737 fileGuid= 99af7ac4-804b-4fa2-9362-c928c6e5b630
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:784 [EXIST fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =9723377558737ret = 0
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:785 [--exist]</p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:668 [_LAYER_HASH_ID = 9723377558737
+ ] </p>
+<font color ='#0000FF'>|29-09-2025 15-20-38| file:iocrud.hpp line:716 [_S_CMD = SELECT buckets_and_blocks.idx,buckets_and_blocks.blockGuid,layers.layerGuid,blocks.status,blocks.chk,blocks.size,buckets_and_blocks.fileGuid FROM blocks  inner join buckets_and_blocks on blocks.blockHash = buckets_and_blocks.blockHash inner join layers on blocks.layerHash = layers.layerHash where  buckets_and_blocks.fileGuid like '99af7ac4-804b-4fa2-9362-c928c6e5b630' AND blocks.layerHash = 9723377558737
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:763 [++exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:765 [ layerHash = 9723377558737 fileGuid= 99af7ac4-804b-4fa2-9362-c928c6e5b630
+ ] </p>
+<font color ='red'>|29-09-2025 15-20-38| file:iocrud.hpp line:784 [EXIST fileGuid = 99af7ac4-804b-4fa2-9362-c928c6e5b630 _LAYER_HASH_ID =9723377558737ret = 0
+ ] </p>
+<font color ='black'>|29-09-2025 15-20-38| file:iocrud.hpp line:785 [--exist]</p>
+<font color ='red'>|29-09-2025 15-20-38| file:tcpconnection.hpp line:635 [re.what() = Query result is empty!
+ ] </p>
+</body>
+</html>

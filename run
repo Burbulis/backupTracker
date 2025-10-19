@@ -1,0 +1,5 @@
+rm log.html
+rm *.bin
+rm console.log
+#cp original_db/db_buckets db_buckets
+./test

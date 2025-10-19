@@ -1,0 +1,1 @@
+g++ -std=c++17 -o test  sql.cpp log.cpp SqClass.cpp dbgMetrics.cpp -I /home/kotus/boost_1_80_0 -L /home/kotus/boost_1_80_0/stage/lib -lboost_system -lboost_filesystem -lboost_thread -lpthread -lsqlite3

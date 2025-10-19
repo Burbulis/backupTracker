@@ -1,0 +1,82 @@
+<html><body><font color ='black'>|18-10-2025 13-38-38| file:sql.cpp line:23 [typeWithBuffer::TBUFF_SIZE =1
+ ] </p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:73 [bufferType::TBUFF_SIZE = 1
+ ] </p>
+<font color ='black'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:1170 [++reinit()]</p>
+<font color ='black'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:1175 [--reinit()]</p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:76 [ptr_this.use_count() ==0
+ ] </p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:80 [++init tcp_connection..]</p>
+<font color ='black'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:55 [++tcp_connection()]</p>
+<font color ='red'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:58 [_mheader.size() = 4000 headerType::BUFFER_SIZE = 3621
+ ] </p>
+<font color ='black'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:60 [--tcp_connection()]</p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:84 [t is complete created!]</p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:86 [--init tcp_connection..]</p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:tcpconnection.hpp line:95 [ptr_this.use_count() ==1
+ ] </p>
+<font color ='black'>|18-10-2025 13-38-38| file:sql.cpp line:26 [run_one::connector->complete()==0
+ ] </p>
+<font color ='black'>|18-10-2025 13-38-38| file:sql.cpp line:44 [started server
+ ] </p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:dbquery.hpp line:1022 [++CREATE BASE_LAYER]</p>
+<font color ='#FF00FF'>|18-10-2025 13-38-38| file:dbquery.hpp line:1041 [layers = insert into layers(layerGuid,layerHash,layerId,layer_start) SELECT '2f11aa58-6344-4587-8143-a5d2c0bef1d3',6587090031396,1,datetime('now','localtime') WHERE NOT EXISTS (SELECT 1 FROM layers WHERE  layers.layerId = 1)
+ ] </p>
+<font color ='#0000FF'>|18-10-2025 13-38-38| file:dbquery.hpp line:1048 [--CREATE BASE_LAYER]</p>
+<font color ='#FF00FF'>|18-10-2025 14-25-11| file:sql.cpp line:85 [try to set readHeader event..]</p>
+<font color ='#0000FF'>|18-10-2025 14-25-11| file:tcpconnection.hpp line:498 [++readHeader()]</p>
+<font color ='#0000FF'>|18-10-2025 14-25-11| file:tcpconnection.hpp line:507 [try to readHeader buffer
+deep_of_recursion = 0
+_mheader.size() =4000
+_mheader.isblocked() = 0
+ ] </p>
+<font color ='#0000FF'>|18-10-2025 14-25-11| file:tcpconnection.hpp line:508 [set HEADER_RD_HANDLER..]</p>
+<font color ='#0000FF'>|18-10-2025 14-25-11| file:tcpconnection.hpp line:519 [--readHeader()]</p>
+<font color ='#0000FF'>|18-10-2025 14-25-11| file:tcpconnection.hpp line:521 [is_complete() =0
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:295 [++STUB_HEADER_RD_HANDLER]</p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:758 [++mainDescExctractor]</p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:774 [ rf.getCount() = 6
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:787 [--mainDescExctractor]</p>
+<font color ='red'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:309 [md.fileGuid = NOT_PRESENT HEADER_SIZE =4000 xfer = 4000 md.size1000  md.sessionId = SESSION_ID md.typeOf = 1005
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:310 [--STUB_HEADER_RD_HANDLER]</p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:224 [++queryFilesAndPaths]</p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:dbquery.hpp line:891 [++getfilesAndPaths()]</p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:dbquery.hpp line:907 [s = SELECT system_ids.pathFile,system_ids.fileName,system_ids.fileGuid FROM system_ids 
+ ] </p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:dbquery.hpp line:914 [rs.size() = 3
+ ] </p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:dbquery.hpp line:919 [r.first = fileGuid
+ ] </p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:dbquery.hpp line:919 [r.first = fileName
+ ] </p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:dbquery.hpp line:919 [r.first = pathFile
+ ] </p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:dbquery.hpp line:921 [--getfilesAndPaths()]</p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:233 [rs.size() = 3
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:248 [fileNames.size() = 600
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:250 [fileGuids.size() = 600
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:tcpconnection.hpp line:252 [pathFiles.size() = 600
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:BlocksAndLayers.hpp line:279 [++getFileSizeByGuid]</p>
+<font color ='black'>|18-10-2025 14-25-12| file:layersHelper.hpp line:103 [++setLayers]</p>
+<font color ='black'>|18-10-2025 14-25-12| file:layers_API.hpp line:104 [++getLayersByFileGuid]</p>
+<font color ='#FF00FF'>|18-10-2025 14-25-12| file:layers_API.hpp line:139 [ sqlPerform.debugModeOn = 1selectQueryStr = 
+ ] </p>
+<font color ='red'>|18-10-2025 14-25-12| file:layers_API.hpp line:155 [QUERY IS EMPTY!!!!]</p>
+<font color ='red'>|18-10-2025 14-25-12| file:layersHelper.hpp line:325 [ ++DBG_VIEW(0)]</p>
+<font color ='red'>|18-10-2025 14-25-12| file:layersHelper.hpp line:333 [ --DBG_VIEW(0)]</p>
+<font color ='red'>|18-10-2025 14-25-12| file:layersHelper.hpp line:113 [ layers.size() = 0
+ ] </p>
+<font color ='black'>|18-10-2025 14-25-12| file:layersHelper.hpp line:114 [--setLayers]</p>
+<font color ='red'>|18-10-2025 14-25-12| file:layersHelper.hpp line:241 [ ++layerHelper::getLastLayer('layerHash')
+ ] </p>
+<font color ='red'>|18-10-2025 14-25-12| file:layersHelper.hpp line:183 [++getlayerSomeThingByName(layerId)
+ ] </p>
+<font color ='red'>|18-10-2025 14-25-12| file:layersHelper.hpp line:325 [ ++DBG_VIEW(0)]</p>
+<font color ='red'>|18-10-2025 14-25-12| file:layersHelper.hpp line:333 [ --DBG_VIEW(0)]</p>
