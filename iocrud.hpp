@@ -380,9 +380,9 @@ namespace IO_CRUD
             return (false);
         }
         
-            SQLCMD::types::ul_long  layerHash = res->begin()->first;
-            std::vector< std::pair< std::string , bool> > blocksToNextLayer = res->begin()->second;
-            std::optional<std::string> layerGuid;
+        SQLCMD::types::ul_long  layerHash = res->begin()->first;
+        std::vector< std::pair< std::string , bool> > blocksToNextLayer = res->begin()->second;
+        std::optional<std::string> layerGuid;
         try
         {
     #ifdef _DEBUG_UPDATE_RECORDS_ON_

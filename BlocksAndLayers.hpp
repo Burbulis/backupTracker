@@ -24,18 +24,33 @@ namespace layersAndBlocks
 	static 	DB::my_recordSet getLayersByFileGuid(std::string fileGuid);
 	std::optional<DB::my_recordSet>	_getCheckedBlocks(const std::vector<SQLCMD::valdesc>& collect_for_check,std::string fileGuid);
  	DB::my_recordSet  		  getInfoAboutBlocks(const std::vector<std::string>& block_s);
+	static std::optional<std::vector< std::string > >	checkChangedBlocks(const std::vector< blockSerialiseOn >& checkedBlocks_);
 	static  DB::my_recordSet  getAllLayers(void);
-	//static	std::string		  createNewLayer(std::string Uid);
+	static	std::optional<hashAndBlocks>  getBlocksWithLayers(LayersIO::layersHelper &layersHelper, LayersIO::layerBuGuidOptional layerByBlockGuid,std::vector< blockSerialiseOn >  checkedBlocks);
+	template  < 
+		typename bufferType 
+	> std::vector< blockSerialiseOn >	_checkChangedBlocks( const	bufferType& faBuffer);
 
+
+
+	static
+	std::optional<std::vector< std::string > >
+	checkChangedBlocks(const std::vector< blockSerialiseOn >& checkedBlocks_)
+	{
+	//1)Находим блоки которые изменились, устанавливаем попутно флаг blockSerialiseOn ,
+	// этот флаг сообщает о том, что блок должен быть сериализован на диск
+		if (checkedBlocks_.empty())
+			return (std::nullopt);
+		std::vector< std::string > checkedBlocks; 
+		std::transform(checkedBlocks_.begin(),checkedBlocks_.end(),std::back_inserter(checkedBlocks),[](const std::pair<std::string,bool>& str){
+			return ( str.first );
+		});
+		if (checkedBlocks.empty())
+			return (std::nullopt);
+		return (checkedBlocks);
+	}
 
 	template
-    <
-        typename bufferType
-    >
-	std::vector< blockSerialiseOn >	checkChangedBlocks( const	bufferType& faBuffer);
-
-
-template
 	<
 	typename bufferType,
 	typename sqlCache
@@ -48,72 +63,21 @@ template
 		BEGIN()
 	#endif 
 		LayersIO::layersHelper  layersHelper;
-		hashAndBlocks m_out;
-	
-//1)Находим блоки которые изменились, устанавливаем попутно флаг blockSerialiseOn ,
-// этот флаг сообщает о том, что блок должен быть сериализован на диск
-		std::vector< blockSerialiseOn >  checkedBlocks = checkChangedBlocks<bufferType>(faBuffer);
-		if (checkedBlocks.empty())
-		{
-	#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-			LOGTOFILE(LOGHTML::messageType::WARNING,"checkedBlocks  is empty!");
-	#endif		
+
+		std::vector< blockSerialiseOn >  checkedBlocks_ = _checkChangedBlocks<bufferType>(faBuffer);
+		if (checkedBlocks_.empty())
 			return (std::nullopt);
-		}
-
-	#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-	
-		std::vector<std::string> checked;
-		std::transform(checkedBlocks.begin(),checkedBlocks.end(),std::back_inserter(checked),[](blockSerialiseOn& val){
-				return (val.first);	
-		});
-		std::vector<std::string>::iterator _It = std::unique(checked.begin(),checked.end());
-		checked.resize( std::distance(checked.begin(),_It));
-		for (std::string s:checked)
-		{
-			_LOG::out_s << "changedBlocks[blockGuid] = " << s << std::endl; 
-			LOGTOFILE(LOGHTML::messageType::WARNING,_LOG::out_s);
-		}
-	#endif
-
-	std::vector< std::string > checkBlocks; 
-	std::transform(checkedBlocks.begin(),checkedBlocks.end(),std::back_inserter(checkBlocks),[faBuffer](const std::pair<std::string,bool>& str){
-		return ( str.first );
-	});
-	// Генерирует SQL select fileGuid,layerHash,idx,blockGuid,layerId ....4 where in(blockGuid[0],...,blockGuid[N])
-   DB::my_recordSet selected  = getInfoAboutBlocks(checkBlocks);
-
-   std::vector<std::string> selectedBlocks = selected["blockGuid"];
-
-   	#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-		for (std::string s:selectedBlocks)
-		{
-			_LOG::out_s << "selectedBlocks = " << s << std::endl; 
-			LOGTOFILE(LOGHTML::messageType::WARNING,_LOG::out_s);
-		}
-		_LOG::out_s << "selectedBlocks.size()  = " << selectedBlocks.size() << "checkBlocks.size() = "  <<  checkBlocks.size() << std::endl; 
-		LOGTOFILE(LOGHTML::messageType::WARNING,_LOG::out_s);
-	#endif
-
-	std::vector<std::string>::iterator It_uniq = std::unique(selectedBlocks.begin(),selectedBlocks.end());
-	selectedBlocks.resize( std::distance(selectedBlocks.begin(),It_uniq));
-	
-	#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-		for (std::string s:selectedBlocks)
-		{
-			_LOG::out_s << "selectedBlocks = " << s << std::endl; 
-			LOGTOFILE(LOGHTML::messageType::WARNING,_LOG::out_s);
-		}
-		_LOG::out_s << "selectedBlocks.size()  = " << selectedBlocks.size() << "checkBlocks.size() = "  <<  checkBlocks.size() << std::endl; 
-		LOGTOFILE(LOGHTML::messageType::WARNING,_LOG::out_s);
-	#endif
+		std::optional<std::vector< std::string > > checkedBlocks =	checkChangedBlocks(checkedBlocks_);
+			if (!checkedBlocks)
+				return std::nullopt;
 
 		std::string    layerGuid;
 		std::vector<SQLCMD::types::ul_long> v_layers = layersHelper.getlayerSomeThingByName< 
 				std::vector<SQLCMD::types::ul_long> 
 			>("layerId");	
-
-		auto qi_s = LayersIO::recordSetToQueryInfo(selected);
+		DB::my_recordSet selected  = getInfoAboutBlocks(*checkedBlocks);
+		LayersIO::queryInfo_seq qi_s = LayersIO::recordSetToQueryInfo(selected);
+	
 	#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
 		for (auto q:qi_s)
 		{
@@ -146,13 +110,21 @@ template
 			_LOG::out_s << dbg.first << ":" << dbg.second << " " << std::string((dbg.second == max_layerId)?"max_layerId - DETECTED":"max_layerId - NOT_DETECTED") << std::endl;
 		LOGTOFILE(LOGHTML::messageType::NOTICE,_LOG::out_s);
 	#endif
-#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-		LOGTOFILE(LOGHTML::messageType::NOTICE,"checkedBlocks inspecting:");
-		_LOG::out_s << std::endl;
-		for (auto i:checkedBlocks)
-			_LOG::out_s << "blockGuid =" << i.first <<  std::endl;
-		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-#endif
+
+		std::optional<hashAndBlocks> ret =  getBlocksWithLayers(layersHelper,layerByBlockGuid,checkedBlocks_);
+	#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
+		END()
+	#endif
+		return (ret);
+	}
+
+
+	static
+	std::optional<hashAndBlocks>
+	getBlocksWithLayers(LayersIO::layersHelper &layersHelper, LayersIO::layerBuGuidOptional layerByBlockGuid,std::vector< blockSerialiseOn >  checkedBlocks)
+	{
+		hashAndBlocks m_out;	
+		
 //TODO:
 //переименовать ничего не значащую переменную i, во чтото более адекватное.		
 		for (blockSerialiseOn i:checkedBlocks)
@@ -168,14 +140,15 @@ template
 			_LOG::out_s << "layerId =" << layerId << std::endl;
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 #endif
-		  	std::optional<SQLCMD::types::ul_long> layerHash =layersHelper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",++layerId);				
+		  	std::optional<SQLCMD::types::ul_long> layerHash =
+				layersHelper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",++layerId);				
 			
 			if (layerHash)
 			{
 				m_out[ *layerHash ].push_back(i);
 
-				#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-				_LOG::out_s << "m_out[" << *layerHash << "] = " <<  i.first  << std::endl;
+#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
+				_LOG::out_s << "m_out[" << *layerHash << "] <= " <<  i.first  << std::endl;
 				LOGTOFILE(LOGHTML::messageType::NOTICE,_LOG::out_s);
 #endif
 
@@ -188,22 +161,18 @@ template
 				layerHash =layersHelper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",old_layerId);	
 				m_out[ *layerHash ].push_back(i);
 
-				#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-				_LOG::out_s << "m_out[" << *layerHash << "] = " <<  i.first  << std::endl;
+#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
+				_LOG::out_s << "m_out[" << *layerHash << "] <= " <<  i.first  << std::endl;
 				LOGTOFILE(LOGHTML::messageType::NOTICE,_LOG::out_s);
 #endif
 
 			}
-#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-			END();
-#endif
 		}
 #ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
 		END();
-#endif 
-
+#endif
 		return (m_out);
-	}
+	}//	getBlocksWithLayers(
 
 	// Допилить поведение на случай пустого датасета!!!
 	// вероятно надо возвращать std::optional<DB::my_recordSet>
@@ -263,22 +232,13 @@ template
 		}
 		
 		SQLCMD::valdesc::clearInstanceCounter();
-		//if (sq.queryResultIsEmpty())
-		//	throw(std::runtime_error("empty dataset!"));
 		return (sq.getDataSet());
-	//	DB::my_recordSet selected =  
 }
 
 
-/*
-*Перестроить ёбаный запрос так, чтобы он оазвращал актуальный размер, по последнему ёбаному слою!
-*
-*
-*/
 
-
-static
-std::optional<SQLCMD::types::ul_long>
+	static
+	std::optional<SQLCMD::types::ul_long>
 	getFileSizeByGuid(std::string fileGuid)
 	{
 		/*"layerId","layerHash"}*/
@@ -365,10 +325,7 @@ std::optional<SQLCMD::types::ul_long>
         typename bufferType
     >
 	std::vector< blockSerialiseOn >
-	checkChangedBlocks(
-	 const	bufferType& faBuffer
-	)
-		//const std::unique_ptr<bufferType>& faBuffer)
+	_checkChangedBlocks( const	bufferType& faBuffer)
 	{
 		#ifdef CHECK_CHANGED_BLOCKS_LOG_ON	
 			BEGIN()
@@ -378,12 +335,11 @@ std::optional<SQLCMD::types::ul_long>
 		enum{FIRST_ELEMENT=0};
 		std::vector<SQLCMD::valdesc> collect_for_check;
 		std::vector< blockSerialiseOn > ret;
-		//const size_t counter = fa//utils::getCountOf(faBuffer.get());	
 		const size_t blocksCount =  faBuffer.blocks.size();
         bool isFinal = false;
   
 		#ifdef CHECK_CHANGED_BLOCKS_LOG_ON	
-			_LOG::out_s << "fileGuid = " << fileGuid  << std::endl; /*<< " counter = " << counter */ 
+			_LOG::out_s << "fileGuid = " << fileGuid  << std::endl; 
 			LOGTOFILE(LOGHTML::messageType::WARNING,_LOG::out_s);
 		#endif   
 
@@ -391,7 +347,7 @@ std::optional<SQLCMD::types::ul_long>
 		{
 			const std::string& blockGuid = std::string(val.blockGuid);
 			const SQLCMD::types::ul_long& CHECK = val.chk;	
-			if ((0 != CHECK)||(utils::isFiller<DA::tdataAttrib_s>(val)))//utils::isFiller<DA::tdataAttrib_s>(val)));
+			if ((0 != CHECK)||(utils::isFiller<DA::tdataAttrib_s>(val)))
 				return (SQLCMD::valdesc(CHECK));
 		});
 
@@ -422,9 +378,6 @@ std::optional<SQLCMD::types::ul_long>
 		}
 		ret.clear();
     
-
-// generate squence of block for update
-	//	std::vector< blockSerialiseOn > ret;
 		const size_t counter = faBuffer.blocks.size();
 		DB::my_recordSet _selected = *selected;
 		for (size_t i = 0 ;	i < counter ; ++i)
@@ -485,7 +438,7 @@ std::optional<SQLCMD::types::ul_long>
 		END()
 	#endif
 		return ret;
-	}
+	}//	_checkChangedBlocks(const	bufferType& faBuffer)
 
 
 	 DB::my_recordSet
