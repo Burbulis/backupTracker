@@ -241,7 +241,6 @@ namespace layersAndBlocks
 	std::optional<SQLCMD::types::ul_long>
 	getFileSizeByGuid(std::string fileGuid)
 	{
-		/*"layerId","layerHash"}*/
 		#ifdef GET_FILE_SIZE_BY_GUID_LOG_ON
 			BEGIN()
 		#endif
