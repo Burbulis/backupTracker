@@ -141,18 +141,9 @@ namespace layersAndBlocks
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 #endif
 		  	std::optional<SQLCMD::types::ul_long> layerHash =
-				layersHelper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",++layerId);				
-			
+				layersHelper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",++layerId);					
 			if (layerHash)
-			{
 				m_out[ *layerHash ].push_back(i);
-
-#ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
-				_LOG::out_s << "m_out[" << *layerHash << "] <= " <<  i.first  << std::endl;
-				LOGTOFILE(LOGHTML::messageType::NOTICE,_LOG::out_s);
-#endif
-
-			}
 			else
 			{
 #ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
@@ -160,13 +151,11 @@ namespace layersAndBlocks
 #endif
 				layerHash =layersHelper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",old_layerId);	
 				m_out[ *layerHash ].push_back(i);
-
+			}
 #ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
 				_LOG::out_s << "m_out[" << *layerHash << "] <= " <<  i.first  << std::endl;
 				LOGTOFILE(LOGHTML::messageType::NOTICE,_LOG::out_s);
 #endif
-
-			}
 		}
 #ifdef GET_BLOCK_WITH_LAYERS_BY_ID_LOG_ON
 		END();
@@ -174,9 +163,7 @@ namespace layersAndBlocks
 		return (m_out);
 	}//	getBlocksWithLayers(
 
-	// Допилить поведение на случай пустого датасета!!!
-	// вероятно надо возвращать std::optional<DB::my_recordSet>
-	// чтобы на париться с исклуючением в случае пустого датасета.
+
     /// @brief для заданных контрольных сумм блоков, во входящем параметре , ищет в базе соответствующие им :
 	/// blockHash,status,layyerHash или пустой вектор если контрольные суммы не ннайдены.
     /// @param const std::vector<SQLCMD::valdesc>& collect_for_check - список контрольных сум блоков подлежащих обнаружению в базе. 
@@ -241,6 +228,7 @@ namespace layersAndBlocks
 	std::optional<SQLCMD::types::ul_long>
 	getFileSizeByGuid(std::string fileGuid)
 	{
+		/*"layerId","layerHash"}*/
 		#ifdef GET_FILE_SIZE_BY_GUID_LOG_ON
 			BEGIN()
 		#endif

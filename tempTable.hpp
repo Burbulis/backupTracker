@@ -160,7 +160,7 @@ std::string createSubTemp(SQLCMD::types::ul_long LAYER_HASH_ID,SQLCMD::types::ul
 				{ "tmp", SQLCMD::valdesc(std::string(ss),SQLCMD::valdesc::AS_TABLE)},
 				{ "blockHash", SQLCMD::valdesc(1112,SQLCMD::valdesc::WHERE_ON)}
 	};
-
+	dropIfExists("_tmp");
 	SQLCMD::Generator <  SQLCMD::selector_type_v, SQLCMD::Create<false, true> > create("_tmp", SQLCMD::type_v(m_create));
 	std::string _s = create();
 	#ifdef CREATE_SUBTEMP_TABLE_LOG_ON
@@ -247,8 +247,8 @@ where buckets_and_blocks.fileGuid like '7145a6f1-8203-4016-86ea-3fa00944534f' AN
 						{ "fileGuid", SQLCMD::valdesc(fileGuid,SQLCMD::valdesc::WHERE_ON)}                           
 			};
 
-
-		SQLCMD::Generator <  SQLCMD::selector_type_v, SQLCMD::Create<false,false> > create("test_table", SQLCMD::type_v(m_create));
+//		dropIfExists("test_table");
+		SQLCMD::Generator <  SQLCMD::selector_type_v, SQLCMD::Create<true,true> > create("test_table", SQLCMD::type_v(m_create));
 		std::string _s = create();
 
 		#ifdef CREATE_TEMP_TABLE_LOG_ON

@@ -8,51 +8,6 @@
 namespace IO_CRUD
 {
 
-    struct _fileCache
-    {
-        typedef std::map<std::string,DB::my_recordSet> cacheType; 
-        
-        _fileCache(){} 
-#define GET_FILES_AND_GUIDS_BY_PATH
-        DB::my_recordSet
-        getFilesAndGuidsByPath(std::string pathToFile)
-        {
-             TRACE();
-    #ifdef GET_FILES_AND_GUIDS_BY_PATH
-          BEGIN()
-    #endif
-            if (_cache.count(pathToFile) > 0)
-               return (_cache[pathToFile]);
-
-            SQLCMD::Generator< SQLCMD::selector_type_v, SQLCMD::Select<> > fsObjects("system_ids", SQLCMD::get_ordered
-            (
-              SQLCMD::selector_type  {
-                {"fileGuid"     ,SQLCMD::valdesc()},
-                {"fileName"     ,SQLCMD::valdesc()},
-                {"pathFile"     ,SQLCMD::valdesc(pathToFile , SQLCMD::valdesc::WHERE_ON)}
-                }));
-            auto s = fsObjects();
-            DB::SQlite  sq("db_buckets");
-    #ifdef GET_FILES_AND_GUIDS_BY_PATH
-                _LOG::out_s << "s =" << s << std::endl;
-                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-    #endif
-            sq.execute(s);
-            //cacheType ct = sq.getDataSet();
-            
-            _cache[pathToFile] = sq.getDataSet();
-            const std::string CACHE_ERRROR = std::string("can't retrieve information about files in path = " + pathToFile);
-            if (_cache[pathToFile].empty())
-                throw std::runtime_error(CACHE_ERRROR);
-    #ifdef GET_FILES_AND_GUIDS_BY_PATH
-           END()
-    #endif
-           return (_cache[pathToFile]);
-        }
-    private:
-      static cacheType  _cache;
-   };
-   _fileCache::cacheType _fileCache::_cache;
 
   class sqlInsert
   {  
@@ -101,7 +56,7 @@ namespace IO_CRUD
                     continue;
                 }
             #ifdef EXEC_1
-                        _LOG::out_s << "blockGuid =" << blockGuid << " blockHash = " << blockHash << " layerHash = " << layerHash << " check = " << check << "status = "  << status << std::endl;
+                        _LOG::out_s << " *APPROWED* blockGuid =" << blockGuid << " blockHash = " << blockHash << " layerHash = " << layerHash << " check = " << check << "status = "  << status << std::endl;
                         LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
             #endif
 
@@ -125,162 +80,146 @@ namespace IO_CRUD
                 LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
             #endif
             }// for (size_t i = 0 ; i < counter ; ++ i)
-        if (isFinalUpdate)
-        {
-         /*   SQLCMD::selector_type m_copy =
+            if (isFinalUpdate)
             {
-                        { "status"     , SQLCMD::valdesc()    },
-                        { "chk"        , SQLCMD::valdesc()    },
-                        { "blockHash"  , SQLCMD::valdesc()    },
-                        { "layerHash"  , SQLCMD::valdesc()    },
-                        { "size"       , SQLCMD::valdesc()    }
-
-            };
+                sqlInternalCache.add(tempDataStoreObject.tableCopy());
+            #ifdef EXEC_1
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"************************************************************");           
+                std::list<std::string> qryDebug = sqlInternalCache.getQueries();
+                for (auto str:qryDebug)
+                {
+                _LOG::out_s << "str ["<<str <<  "]" <<  std::endl;	
+                    LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);  
+                }            
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"************************************************************");           
+                _LOG::out_s << "(before flush)sqlInternalCache.size = " << sqlInternalCache.size() << std::endl;
+            #endif
+                sqlInternalCache.flush();
+            }
+            #ifdef EXEC_1
+            _LOG::out_s <<  "(after flush)sqlInternalCache.size = " << sqlInternalCache.size() << std::endl;
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
+                END();
+            #endif
+            return (true);
             
-            std::string cmd =  SQLCMD::SqlCopy("test_table","blocks",m_copy);
-          */
-            
-            sqlInternalCache.add(tempDataStoreObject.tableCopy());
-        #ifdef EXEC_1
-            LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"************************************************************");           
-            std::list<std::string> qryDebug = sqlInternalCache.getQueries();
-            for (auto str:qryDebug)
-            {
-               _LOG::out_s << "str ["<<str <<  "]" <<  std::endl;	
-                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);  
-            }            
-            LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"************************************************************");           
-            _LOG::out_s << "(before flush)sqlInternalCache.size = " << sqlInternalCache.size() << std::endl;
-        #endif
-            sqlInternalCache.flush();
-        }
-        #ifdef EXEC_1
-           _LOG::out_s <<  "(after flush)sqlInternalCache.size = " << sqlInternalCache.size() << std::endl;
-            LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-            END();
-        #endif
-        return (true);
-        
-    }//    bool exec(bufferType *faBuffer,const std::vector< std::string >& approwed,types::ul_long layerHash)
+        }//    bool exec(bufferType *faBuffer,const std::vector< std::string >& approwed,types::ul_long layerHash)
         
 // real insert record
-// TODO::Хуярим здесь!
-       // template
-       // <
-       // typename bufferType
-       // >
     #define EXEC_2
    
-    bool exec(DA::mainDescNorm faBuffer,types::ul_long layerHash, bool isCreateInserter = true,bool isCreateSystem = true)
-    {
-    #ifdef EXEC_2
-        BEGIN()
-            _LOG::out_s << "exec__layerHash = " << layerHash << std::endl;
-            LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-    #endif
-         std::string query=""; //TODO : Запилить признак конца букета, и признак конца сессии.
-         bool ret = false;
-        if (isCreateSystem)
+        bool exec(DA::mainDescNorm faBuffer,types::ul_long layerHash, bool isCreateInserter = true,bool isCreateSystem = true)
         {
-      
-            if (!mini_cache.exist(utils::minicache::str_hash(std::string(faBuffer.fileGuid))))
+        #ifdef EXEC_2
+            BEGIN()
+                _LOG::out_s << "exec__layerHash = " << layerHash << std::endl;
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
+        #endif
+            std::string query=""; //TODO : Запилить признак конца букета, и признак конца сессии.
+            bool ret = false;
+            if (isCreateSystem)
             {
-                SQLCMD::Generator< SQLCMD::inserter_type , SQLCMD::Insert> insertSystem_ids("system_ids",
+        
+                if (!mini_cache.exist(utils::minicache::str_hash(std::string(faBuffer.fileGuid))))
+                {
+                    SQLCMD::Generator< SQLCMD::inserter_type , SQLCMD::Insert> insertSystem_ids("system_ids",
+                        {
+                            {"pathFile",SQLCMD::valdesc(faBuffer.pathFile)},
+                            {"fileName",SQLCMD::valdesc(faBuffer.fileName)},
+                            {"fileGuid",SQLCMD::valdesc(faBuffer.fileGuid)},
+                            {"ftCreationTime",SQLCMD::valdesc( utils::time::toTimeString  ( faBuffer.creationTime     ))},
+                            {"ftLastAccessTime",SQLCMD::valdesc( utils::time::toTimeString(faBuffer.lastAccessTime  ))},
+                            {"ftLastWriteTime",SQLCMD::valdesc( utils::time::toTimeString (faBuffer.lastWriteTime    ))}
+                        }
+                    );
+                    query = insertSystem_ids();
+            #ifdef EXEC_2
+                _LOG::out_s << "query = " << query << std::endl;
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
+            #endif
+                    sqlInternalCache.add(query);
+                }
+            }
+            const size_t blocksCount =  faBuffer.blocks.size();
+            bool isFinal = false;
+            for (size_t i = 0 ; i < blocksCount ; ++i)
+            {
+            
+                if (faBuffer.blocks[i].status == FILLERS::FILESIZE_INCREASE || faBuffer.blocks[i].status == FILLERS::FILLER_FILESIZE_CREATED)
+                {
+                    types::ul_long blockHash = utils::minicache::str_hash( faBuffer.blocks[i].blockGuid ) / 100000;  
+                    if (isCreateInserter)
                     {
-                        {"pathFile",SQLCMD::valdesc(faBuffer.pathFile)},
-                        {"fileName",SQLCMD::valdesc(faBuffer.fileName)},
-                        {"fileGuid",SQLCMD::valdesc(faBuffer.fileGuid)},
-                        {"ftCreationTime",SQLCMD::valdesc( utils::time::toTimeString  ( faBuffer.creationTime     ))},
-                        {"ftLastAccessTime",SQLCMD::valdesc( utils::time::toTimeString(faBuffer.lastAccessTime  ))},
-                        {"ftLastWriteTime",SQLCMD::valdesc( utils::time::toTimeString (faBuffer.lastWriteTime    ))}
+                        SQLCMD::Generator< SQLCMD::inserter_type , SQLCMD::Insert> insertBlocksAndBuckets("buckets_and_blocks",
+                        {
+                            {"fileGuid"	 ,SQLCMD::valdesc (faBuffer.fileGuid)},
+                            {"blockGuid" ,SQLCMD::valdesc (faBuffer.blocks[i].blockGuid)},
+                            {"blockHash" ,SQLCMD::valdesc (blockHash)},
+                            {"idx"		 ,SQLCMD::valdesc (faBuffer.blocks[i].index)},
+                            {"layerHash" ,SQLCMD::valdesc (layerHash)}
+                        });	
+
+                        query = insertBlocksAndBuckets();
+            #ifdef EXEC_2
+                _LOG::out_s << "query = " << query << std::endl;
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
+            #endif
+                
+                        sqlInternalCache.add(query);
                     }
-                );
-                query = insertSystem_ids();
+                    SQLCMD::valdesc::clearInstanceCounter();
+                    SQLCMD::types::ul_long size = faBuffer.blocks[i].buffer.size();
+                    SQLCMD::Generator< SQLCMD::inserter_type , SQLCMD::Insert	> InsertIntoBlocks("blocks",
+                    {
+                        {"chk",SQLCMD::valdesc      (faBuffer.blocks[i].chk)},
+                        {"status",SQLCMD::valdesc   (
+                        (faBuffer.blocks[i].status == FILLERS::FILESIZE_INCREASE)
+                            ?FILLERS::FILLER_FILESIZE_INCREASE : faBuffer.blocks[i].status)},
+                        {"blockHash",SQLCMD::valdesc(blockHash)},
+                        {"layerHash",SQLCMD::valdesc(layerHash)},
+                        {"size",SQLCMD::valdesc     (size)}
+                    });	
+                    query = InsertIntoBlocks();
         #ifdef EXEC_2
             _LOG::out_s << "query = " << query << std::endl;
             LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
         #endif
-                sqlInternalCache.add(query);
-            }
-        }
-        const size_t blocksCount =  faBuffer.blocks.size();
-        bool isFinal = false;
-        for (size_t i = 0 ; i < blocksCount ; ++i)
-        {
-           
-            if (faBuffer.blocks[i].status == FILLERS::FILESIZE_INCREASE || faBuffer.blocks[i].status == FILLERS::FILLER_FILESIZE_CREATED)
-            {
-                types::ul_long blockHash = utils::minicache::str_hash( faBuffer.blocks[i].blockGuid ) / 100000;  
-                if (isCreateInserter)
-                {
-                    SQLCMD::Generator< SQLCMD::inserter_type , SQLCMD::Insert> insertBlocksAndBuckets("buckets_and_blocks",
-                    {
-                        {"fileGuid"	 ,SQLCMD::valdesc (faBuffer.fileGuid)},
-                        {"blockGuid" ,SQLCMD::valdesc (faBuffer.blocks[i].blockGuid)},
-                        {"blockHash" ,SQLCMD::valdesc (blockHash)},
-                        {"idx"		 ,SQLCMD::valdesc (faBuffer.blocks[i].index)},
-                        {"layerHash" ,SQLCMD::valdesc (layerHash)}
-                    });	
-
-                    query = insertBlocksAndBuckets();
-                        #ifdef EXEC_2
-                        _LOG::out_s << "query = " << query << std::endl;
-                        LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-                    #endif
-            
                     sqlInternalCache.add(query);
                 }
+                isFinal = (0 == faBuffer.blocks[i].end.compare("_FINA"));
                 SQLCMD::valdesc::clearInstanceCounter();
-                SQLCMD::types::ul_long size = faBuffer.blocks[i].buffer.size();
-                SQLCMD::Generator< SQLCMD::inserter_type , SQLCMD::Insert	> InsertIntoBlocks("blocks",
-                {
-                    {"chk",SQLCMD::valdesc      (faBuffer.blocks[i].chk)},
-                    {"status",SQLCMD::valdesc   (faBuffer.blocks[i].status)},
-                    {"blockHash",SQLCMD::valdesc(blockHash)},
-                    {"layerHash",SQLCMD::valdesc(layerHash)},
-                    {"size",SQLCMD::valdesc     (size)}
-                });	
-                query = InsertIntoBlocks();
-    #ifdef EXEC_2
-        _LOG::out_s << "query = " << query << std::endl;
-        LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-    #endif
-                sqlInternalCache.add(query);
+                if (isFinal)
+                    break;
             }
-            isFinal = (0 == faBuffer.blocks[i].end.compare("_FINA"));
-            SQLCMD::valdesc::clearInstanceCounter();
             if (isFinal)
-                break;
+            {
+        #ifdef EXEC_2
+            LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"FINALISED!!!");
+        #endif
+        #ifdef EXEC_2
+        std::list<std::string> query_s = sqlInternalCache.getQueries();
+        for (auto q:query_s)
+        {    
+            _LOG::out_s << "[query = " << q << "]" << std::endl;
+            LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
         }
-        if (isFinal)
-        {
-    #ifdef EXEC_2
-        LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"FINALISED!!!");
-    #endif
-    #ifdef EXEC_2
-       std::list<std::string> query_s = sqlInternalCache.getQueries();
-       for (auto q:query_s)
-       {    
-           _LOG::out_s << "[query = " << q << "]" << std::endl;
-           LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-       }
-      
-    #endif
+        
+        #endif
 
 
-           sqlInternalCache.flush();
-            ret = (0 == sqlInternalCache.size()) ;
-    #ifdef EXEC_2
-        END()
-    #endif
+            sqlInternalCache.flush();
+                ret = (0 == sqlInternalCache.size()) ;
+        #ifdef EXEC_2
+            END()
+        #endif
+                return (ret);
+            }
+        #ifdef EXEC_2
+            END()
+        #endif
             return (ret);
-        }
-    #ifdef EXEC_2
-        END()
-    #endif
-        return (ret);
-    } // bool exec(DA::mainDescNorm faBuffer,types::ul_long layerHash)
-   
+        } // bool exec(DA::mainDescNorm faBuffer,types::ul_long layerHash)
+    
     bool
     cacheIsEmpty(void)
     {
@@ -298,6 +237,7 @@ namespace IO_CRUD
     /// @tparam bufferType тип буффера 
     /// @param faBuffer //буффер содержащий блоки для обновления
     /// @return всё прошло хорошо -true/всё плохо -false.
+#define DEBUG_UPDATE
     template
     <
         typename bufferType
@@ -307,7 +247,7 @@ namespace IO_CRUD
     )
     {
 
-        #ifdef _DEBUG_UPDATE_RECORDS_ON_
+        #ifdef DEBUG_UPDATE
             BEGIN()
         #endif
         LayersIO::layersHelper helper;
@@ -316,7 +256,7 @@ namespace IO_CRUD
         TempObjects::autoTempCreator tempStorage(faBuffer.fileGuid);        
         try
         {          
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_
+    #ifdef DEBUG_UPDATE
             LOGTOFILE(LOGHTML::messageType::MESSAGE,"*******************************************************");
                 _LOG::out_s << "faBuffer.fileGuid = "<<  faBuffer.fileGuid <<   std::endl;	
                 LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
@@ -332,14 +272,14 @@ namespace IO_CRUD
             layerHash = 
                 *lh.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",lastId);
             exec(faBuffer,layerHash,false,false);    
-
+  #ifdef DEBUG_UPDATE
             LOGTOFILE(LOGHTML::messageType::MESSAGE,"*******************************************************");
- 
-            //res = LAYER_QUERIES::getBlocksWithLayersById<bufferType,DB::sqlQueryCache>(faBuffer,sqlInternalCache);
+  #endif
+  
             res =  layersAndBlocks::getBlocksWithLayersById<bufferType,DB::sqlQueryCache>(faBuffer,sqlInternalCache);
             if (!res)
             {
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_
+    #ifdef DEBUG_UPDATE
                 LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"layerGuid not found by layerHash!");
     #endif
                 return (false);
@@ -347,8 +287,8 @@ namespace IO_CRUD
             // TODO :LayerHash увеличивающих блоков должен быть как у остальных.
             //
             //
-              std::cout << "Prepare to create temp table" << std::endl;
-              getc(stdin);  
+            //   std::cout << "Prepare to create temp table" << std::endl;
+            // getc(stdin);  
               tempStorage(sqlInternalCache);
               //table.tableCopy();
     #ifdef _DEBUG_UPDATE_RECORDS_ON_
@@ -369,14 +309,18 @@ namespace IO_CRUD
         }
         catch(const std::bad_alloc& ba)
         {
+  #ifdef DEBUG_UPDATE
             _LOG::out_s << "exception detected : " << ba.what();
             LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+  #endif
             return (false);
         }
         catch(const std::exception& e)
         {
+  #ifdef DEBUG_UPDATE
             _LOG::out_s << "exception detected : " << e.what();
             LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+  #endif
             return (false);
         }
         
@@ -385,7 +329,7 @@ namespace IO_CRUD
         std::optional<std::string> layerGuid;
         try
         {
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_
+   #ifdef DEBUG_UPDATE
             _LOG::out_s << "layerHash = "<<  layerHash << " blocksToNextLayer.size() = " << blocksToNextLayer.size() <<  std::endl;	
             LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
     #endif
@@ -395,23 +339,30 @@ namespace IO_CRUD
         }
         catch(const std::bad_alloc& ba)
         {
+  #ifdef DEBUG_UPDATE
             _LOG::out_s << "exception detected : " << ba.what();
             LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+  #endif
             return (false);
         }           
         catch(const std::exception& e)
         {
+  #ifdef DEBUG_UPDATE
             _LOG::out_s << "exception detected : " << e.what();
             LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+  #endif
             return (false);
         }         
         if (!layerGuid)
         {
+  #ifdef DEBUG_UPDATE
+
             _LOG::out_s << "layerGuid not found by layerHash = " << layerHash <<  std::endl;
             LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );                    
+  #endif
             return (false);
         }   
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_
+  #ifdef DEBUG_UPDATE
             _LOG::out_s << "layerGuid = "<<  *layerGuid << " res.size() = " << res->size() <<  std::endl;	
             LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
             for (auto z:blocksToNextLayer)
@@ -422,7 +373,7 @@ namespace IO_CRUD
     #endif
         if (!res)
         {
-#ifdef _DEBUG_UPDATE_RECORDS_ON_				
+#ifdef DEBUG_UPDATE
             LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"nothing to update!");
 #endif		
             throw std::logic_error("nothing to update!");
@@ -430,21 +381,25 @@ namespace IO_CRUD
         }
         
         std::vector< std::string > approwed;
+ 
         std::transform(blocksToNextLayer.begin(),blocksToNextLayer.end(),std::back_inserter(approwed) ,[](std::pair<std::string,bool> p){
             return (p.first);    
         });
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_				
-            _LOG::out_s << "before exec... approwed.size() = " << approwed.size() << std::endl;
-            LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
-    #endif		
+  #ifdef DEBUG_UPDATE
+        _LOG::out_s << "before exec... approwed.size() = " << approwed.size() << std::endl;
+        LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+  #endif		
 //need to create temp_table here
         if (exec<bufferType>(tempStorage,faBuffer,approwed,layerHash))
         {
         #ifdef __SERIALISER_ON__
-            #ifdef _DEBUG_UPDATE_RECORDS_ON_				
-                        LOGTOFILE(LOGHTML::messageType::WARNING,"try to serialise!");
-            #endif		
-            approwed.clear();
+        #ifdef DEBUG_UPDATE
+                    _LOG::out_s << "after exec... approwed.size() = " << approwed.size() << std::endl;
+                    LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+            
+                    LOGTOFILE(LOGHTML::messageType::WARNING,"try to serialise!");
+        #endif	
+            approwed.clear();	
             std::transform(blocksToNextLayer.begin(),blocksToNextLayer.end(),std::back_inserter(approwed) ,[](std::pair<std::string,bool> p){
                 return ((p.second)?p.first:"");    
             });
@@ -452,91 +407,93 @@ namespace IO_CRUD
                 std::remove_if(approwed.begin(),approwed.end(),[](std::string str){
                             return (str.empty());
                         }),approwed.end());
-
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_				
-            _LOG::out_s << "after exec... approwed.size() = " << approwed.size() << std::endl;
-            LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
-    #endif		
-
             try
             {  
                 if (!approwed.empty())
-                        diskOperations::stubSerialise(faBuffer,*layerGuid,approwed);  //serialise<bufferType>(faBuffer,layerGuid,approwed);
+                        diskOperations::stubSerialise(faBuffer,*layerGuid,approwed); 
             }
             catch(const std::bad_alloc& ba)
             {
+    #ifdef DEBUG_UPDATE
                 _LOG::out_s << "exception detected : " << ba.what();
                 LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+    #endif            
                 return (false);
             }
             catch(const std::runtime_error &r)
             {
+      #ifdef DEBUG_UPDATE           
                 _LOG::out_s << "exception detected : " << r.what();
                 LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+      #endif          
                 return (false);
             }
             catch(const std::exception& e)
             {
+      #ifdef DEBUG_UPDATE     
                 _LOG::out_s << "exception detected : " << e.what();
                 LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,_LOG::out_s );
+      #endif        
                 return (false);
             } 
 
 
             #endif	
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_
-                END();
+   #ifdef DEBUG_UPDATE
+            END();
     #endif
-                return (true);
-        }//exec
-    #ifdef _DEBUG_UPDATE_RECORDS_ON_
+            return (true);
+        }//if exec
+    #ifdef DEBUG_UPDATE
           END()
     #endif
         return (false);
-    }
+    } //Update
+    
   };//the end of sqlInsert
 
 
 #define GET_FILE_GUID_BY_NAME 
-std::string
-getFileGuidByName(std::string fileName , std::string pathToFile)
-{
-	#ifdef  GET_FILE_GUID_BY_NAME		
-        BEGIN()
-        _LOG::out_s <<	"fileName = " <<	fileName << std::endl;
-		_LOG::out_s << "pathToFile = " << pathToFile << std:: endl;
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-	#endif
-    SQLCMD::Generator< SQLCMD::selector_type_v, SQLCMD::Select<> > fsObjects("system_ids", SQLCMD::get_ordered
-    (
-       SQLCMD::selector_type {
-        {"fileGuid"     ,SQLCMD::valdesc()},
-        {"fileName"     ,SQLCMD::valdesc(fileName, SQLCMD::valdesc::WHERE_ON,false)},
-        {"pathFile"     ,SQLCMD::valdesc(pathToFile , SQLCMD::valdesc::WHERE_AND,false)}
-        }));
-    auto s = fsObjects();
-    DB::SQlite  sq("db_buckets");
-	#ifdef  GET_FILE_GUID_BY_NAME		
-		_LOG::out_s << "s = " << s << std:: endl;
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-	#endif
 
-    sq.execute(s);
-    auto retQ = sq.getDataSet();
-	#ifdef  GET_FILE_GUID_BY_NAME		
-        LOGTOFILE(LOGHTML::messageType::MESSAGE,"sql query executed");
-        _LOG::out_s << "retQ.size() = " << retQ.size() << std:: endl;
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);       
-        for (auto f:retQ)
-            _LOG::out_s << "f = " << f.first << std:: endl;
-        LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);      
-    #endif
-    std::string ret = (!retQ.empty())?(!retQ["fileGuid"].empty())?retQ["fileGuid"][0]:"_EMPTY_FileGuid_":"_EMPTY_DATASET_";
-	#ifdef  DEBUG_SELECT_TRAKT		
-		_LOG::out_s << "ret = " << ret << std:: endl;
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-        END();
-    #endif
-    return ( ret );
-}
-}
+    std::string
+    getFileGuidByName(std::string fileName , std::string pathToFile)
+    {
+#ifdef  GET_FILE_GUID_BY_NAME		
+    BEGIN()
+    _LOG::out_s <<	"fileName = " <<	fileName << std::endl;
+    _LOG::out_s << "pathToFile = " << pathToFile << std:: endl;
+    LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+#endif
+        SQLCMD::Generator< SQLCMD::selector_type_v, SQLCMD::Select<> > fsObjects("system_ids", SQLCMD::get_ordered
+        (
+        SQLCMD::selector_type {
+            {"fileGuid"     ,SQLCMD::valdesc()},
+            {"fileName"     ,SQLCMD::valdesc(fileName, SQLCMD::valdesc::WHERE_ON,false)},
+            {"pathFile"     ,SQLCMD::valdesc(pathToFile , SQLCMD::valdesc::WHERE_AND,false)}
+            }));
+        auto s = fsObjects();
+        DB::SQlite  sq("db_buckets");
+#ifdef  GET_FILE_GUID_BY_NAME		
+    _LOG::out_s << "s = " << s << std:: endl;
+    LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+#endif
+
+        sq.execute(s);
+        auto retQ = sq.getDataSet();
+#ifdef  GET_FILE_GUID_BY_NAME		
+    LOGTOFILE(LOGHTML::messageType::MESSAGE,"sql query executed");
+    _LOG::out_s << "retQ.size() = " << retQ.size() << std:: endl;
+    LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);       
+    for (auto f:retQ)
+        _LOG::out_s << "f = " << f.first << std:: endl;
+    LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);      
+#endif
+        std::string ret = (!retQ.empty())?(!retQ["fileGuid"].empty())?retQ["fileGuid"][0]:"_EMPTY_FileGuid_":"_EMPTY_DATASET_";
+#ifdef  DEBUG_SELECT_TRAKT		
+    _LOG::out_s << "ret = " << ret << std:: endl;
+    LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+    END();
+#endif
+        return ( ret );
+    }//  getFileGuidByName
+} //IOCRUD namespace end

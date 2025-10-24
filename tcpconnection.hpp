@@ -4,6 +4,7 @@
 #include "base.h"
 #include "DA_.hpp"
 #include "SqClass.h"
+#include "miniCache.hpp"
 #include "iocrud.hpp"
 #include "shprota/ReadFromBuff.h"
 #include "IOTRansactor.hpp"
@@ -287,11 +288,11 @@ private:
 	#endif
 	}
 
-	#define DBG_STUB_HEADER_RD_HANDLER
+	#define DBG_HEADER_RD_HANDLER
 	#define DBG_GET_RECORDS_FOR_CHECKING
-    void STUB_HEADER_RD_HANDLER(const boost::system::error_code &ec,size_t xfer)
+    void HEADER_RD_HANDLER(const boost::system::error_code &ec,size_t xfer)
 	{
-		#ifdef DBG_STUB_HEADER_RD_HANDLER	
+		#ifdef DBG_HEADER_RD_HANDLER	
 			BEGIN()
 		#endif	
 		if (ec)
@@ -302,8 +303,7 @@ private:
 		
 		//mainDesc md = 
 		DA::mainDesc_s md =	mainDescExctractor(xfer);
-		#ifdef DBG_STUB_HEADER_RD_HANDLER	
-		//md.
+		#ifdef DBG_HEADER_RD_HANDLER	
 			_LOG::out_s << "md.fileGuid = " << md.fileGuid << " HEADER_SIZE =" << HEADER_SIZE  
 			<< " xfer = " << xfer << " md.size"  << md.size <<  "  md.sessionId = " <<  md.sessionId  << " md.typeOf = " << md.typeOf << std::endl;
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
@@ -333,24 +333,25 @@ private:
 
 			case CREATE_NEW_RECORDS:
 			{
-				#ifdef DBG_STUB_HEADER_RD_HANDLER
+				#ifdef DBG_HEADER_RD_HANDLER
 						LOGTOFILE(LOGHTML::messageType::WARNING,"CREATE_NEW_RECORDS");
 				#endif
 				_mreader.reinit(md.size);
 				readBucket();	
 			}
+			break;
 			case UPDATE_RECORDS_COUNT12:	
 			{
-				#ifdef DBG_STUB_HEADER_RD_HANDLER
+				#ifdef DBG_HEADER_RD_HANDLER
 						LOGTOFILE(LOGHTML::messageType::WARNING,"UPDATE_RECORDS_COUNT12");
 				#endif
 				_mreader.reinit(md.size);
 				readBucket();				
 			}
-
+			break;	
 
 		}
-	#ifdef DBG_STUB_HEADER_RD_HANDLER	
+	#ifdef DBG_HEADER_RD_HANDLER	
 		END()
 	#endif	
 	}
@@ -513,7 +514,7 @@ private:
 			_socket,
         	boost::asio::buffer(_mheader.getMem()),
 			boost :: asio :: transfer_all() ,
-			boost::bind(&tcp_connection::STUB_HEADER_RD_HANDLER,shared_from_this(),boost::placeholders::_1,boost::placeholders::_2)
+			boost::bind(&tcp_connection::HEADER_RD_HANDLER,shared_from_this(),boost::placeholders::_1,boost::placeholders::_2)
 		);
 	#ifdef _DEBUG_HEADER_TRAKT_ON_	
 		LOGTOFILE(LOGHTML::messageType::WARNING,"--readHeader()");	

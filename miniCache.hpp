@@ -1,9 +1,55 @@
 #include <map>
 #include <string>
+#include "layersIO.hpp"
 #include "base.h"
-
+#ifndef _MINICACHE_
+#define _MINICACHE_
 namespace IO_CRUD
 {
+
+    struct _fileCache
+    {
+        typedef std::map<std::string,DB::my_recordSet> cacheType; 
+        
+        _fileCache(){} 
+#define GET_FILES_AND_GUIDS_BY_PATH
+        DB::my_recordSet
+        getFilesAndGuidsByPath(std::string pathToFile)
+        {
+    #ifdef GET_FILES_AND_GUIDS_BY_PATH
+          BEGIN()
+    #endif
+            if (_cache.count(pathToFile) > 0)
+               return (_cache[pathToFile]);
+
+            SQLCMD::Generator< SQLCMD::selector_type_v, SQLCMD::Select<> > fsObjects("system_ids", SQLCMD::get_ordered
+            (
+              SQLCMD::selector_type  {
+                {"fileGuid"     ,SQLCMD::valdesc()},
+                {"fileName"     ,SQLCMD::valdesc()},
+                {"pathFile"     ,SQLCMD::valdesc(pathToFile , SQLCMD::valdesc::WHERE_ON)}
+                }));
+            auto s = fsObjects();
+            DB::SQlite  sq("db_buckets");
+    #ifdef GET_FILES_AND_GUIDS_BY_PATH
+                _LOG::out_s << "s =" << s << std::endl;
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
+    #endif
+            sq.execute(s);          
+            _cache[pathToFile] = sq.getDataSet();
+            const std::string CACHE_ERRROR = std::string("can't retrieve information about files in path = " + pathToFile);
+            if (_cache[pathToFile].empty())
+                throw std::runtime_error(CACHE_ERRROR);
+    #ifdef GET_FILES_AND_GUIDS_BY_PATH
+           END()
+    #endif
+           return (_cache[pathToFile]);
+        }
+    private:
+      static cacheType  _cache;
+   };
+
+
 /// @brief формирует список блоков базового слоя, если не задан хэш другого слоя.
 /// @param fileGuid //идентификатор файла для которого создаём слой.
 /// @param layerHash //хэш интересующего слоя(по умолчанию базовый).
@@ -350,5 +396,7 @@ namespace IO_CRUD
      static cachedRecordsByLayerIdType  _cache;
  };
 cachedRecords::cachedRecordsByLayerIdType cachedRecords::_cache;
+_fileCache::cacheType _fileCache::_cache;
 }
 
+#endif
