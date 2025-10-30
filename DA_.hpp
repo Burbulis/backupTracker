@@ -186,7 +186,7 @@ namespace DA
 
     struct mainDesc
     {
-        enum { MAX_P = 200 };
+         enum { MAX_P = 200 };
         char tokenFile[MAX_P];
         char pathFile[MAX_P];
         char fileName[MAX_P];
@@ -222,7 +222,9 @@ namespace DA
         sessionId(_sessionId),
         typeOf(_typeOf),
         size(_size){}
-     };
+     
+   
+    };
 
 
     struct mainDescNorm
@@ -259,6 +261,9 @@ namespace DA
        lastAccessTime(_lastAccessTime),
        lastWriteTime (_lastWriteTime),
        blocks   (_blocks)
+       {}
+       mainDescNorm(const mainDesc_s& md):fileGuid(md.fileGuid),tokenFile(md.tokenFile),pathFile(md.pathFile),
+       sessionId(md.sessionId),fileName(md.fileName),typeOf(md.typeOf)
        {}
         typedef  DA::tdataAttrib_s blocksElementType;
         typedef  const DA::tdataAttrib_s constblocksElementType;

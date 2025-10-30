@@ -34,7 +34,6 @@ class tcp_connection
     typedef boost::shared_ptr<tcp_connection>  ptr;  
 private:
 	IO_CRUD::sqlInsert sqlInsert;
-	//std::vector<char> sq_buffer_;
 	std::mutex guard;	
     static ptr ptr_this;
     static bool complete;
@@ -43,11 +42,10 @@ private:
 	static mem_mgr _mreader;
     std::map<std::string,mainDesc> mDesc_s;
 	std::set<std::string> clientsId_s;
-	//enum{SIZE_OF_TRANSPORT_BUFFER = bufferType_12::BUFFER_SIZE};// bufferType::BUFFER_SIZE/*sizeof(bufferType)*/};
-
     boost::asio::io_service& io_s;
     boost::asio::ip::tcp::socket _socket;
-    public:
+
+	public:
     tcp_connection(boost::asio::io_service& _io):io_s(_io),_socket(_io),
     deep_of_recursion(0),sqlInsert(400)
     { 
@@ -135,11 +133,6 @@ private:
 #ifdef DBG_STUB_BUCKETS_RD_HANDLER
 	BEGIN()
 #endif
-			std::remove("bucket.bin");
-			FILE *f = fopen("bucket.bin","wb+");
-			fwrite(_mreader.getMem().data(),xfer,1,f);
-			fclose(f);
-
 			std::vector<uint8_t> Tmp(_mreader.getMem().begin(),_mreader.getMem().end());
 			DA::mainDescNorm md = mainDescAndBlocksExtractor(Tmp);
 #ifdef DBG_STUB_BUCKETS_RD_HANDLER
@@ -161,12 +154,6 @@ private:
 
 	bool BUCKETS_RD_HANDLER(const boost::system::error_code &ec,size_t xfer)
 	{	
-		//std::lock_guard<std::mutex> lock(guard);
-		TRACE_ARG(xfer);
-//	std::remove("bucket.bin");
-//			FILE *f = fopen("bucket.bin","wb+");
-//			fwrite(testBuffer,xfer,1,f);
-//			fclose(f);
 		if (ec)
 		{		
 			throw std::runtime_error(std::string("Connection error : ") + ec.message());	
@@ -200,8 +187,6 @@ private:
 			_LOG::out_s << "faBuffer_6->buff.md.typeOf = " << faBuffer_6->buff.md.typeOf << std::endl;
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING, _LOG::out_s );
 #endif
-			//dispatch_action<writeBufferType_6>(faBuffer_6);
-			//readHeader();
 			return (true);	
 		}
 #if defined(_DEBUG_UPDATE_RECORDS_ON_) || defined(_DEBUG_CREATE_RECORDS_ON_)
@@ -209,84 +194,13 @@ private:
 			LOGTOFILE(LOGHTML::messageType::WARNING, _LOG::out_s );
 #endif
 		//	dispatch_action<writeBufferType_12>(faBuffer_12);
-			//readHeader();
+		//readHeader();
 #if defined(_DEBUG_UPDATE_RECORDS_ON_) || defined(_DEBUG_CREATE_RECORDS_ON_)
 		LOGTOFILE(LOGHTML::messageType::WARNING,"--BUCKETS_RD_HANDLER()");
 #endif
 		return (true);
 	}
 
-
-	#define DBGQUERY_FILES_AND_PATHS
-
-	void queryFilesAndPaths(void)
-	{
-	#ifdef	DBGQUERY_FILES_AND_PATHS
-		BEGIN()	
-	#endif
-			DB::my_recordSet rs = LAYER_QUERIES::getfilesAndPaths();
-
-			if (rs.empty())
-				throw std::runtime_error("system records not found or empty!");
-
-	#ifdef	DBGQUERY_FILES_AND_PATHS
-			_LOG::out_s << "rs.size() = " << rs.size() <<  std::endl;
-			LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-	#endif
-			auto fileNames = DataSetAPI::getSomeThingByName< std::vector<std::string> >("fileName",rs);
-			auto fileGuids = DataSetAPI::getSomeThingByName< std::vector<std::string> >("fileGuid",rs);
-			auto pathFiles = DataSetAPI::getSomeThingByName< std::vector<std::string> >("pathFile",rs);
-
-			if (fileGuids.empty() || fileGuids.empty() || pathFiles.empty())
-				throw std::runtime_error("something table of system records empty!");
-
-
-			if ((fileGuids.size() != fileNames.size()) || (fileGuids.size()!= pathFiles.size()))
-				throw std::runtime_error("table of system records data mismatch!");
-
-	#ifdef	DBGQUERY_FILES_AND_PATHS
-			_LOG::out_s << "fileNames.size() = " << fileNames.size() <<  std::endl;
-			LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-			_LOG::out_s << "fileGuids.size() = " << fileNames.size() <<  std::endl;
-			LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-			_LOG::out_s << "pathFiles.size() = " << fileNames.size() <<  std::endl;
-			LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-	#endif
-			shprotaBuff::writeTo ret;			
-			for (size_t i = 0 ; i < fileGuids.size(); ++i)
-			{
-				try
-				{
-					auto fileSize = layersAndBlocks::getFileSizeByGuid( fileGuids[i]);
-					_LOG::out_s << "fileSize = " << *fileSize << " fileGuid[" << i  << "]" << fileGuids[i]  << std::endl;
-					LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-					shprotaBuff::writeTo wt;
-					wt.add(fileGuids[i]); //enum{FILE_GUID = 1,PATH_FILE,FILE_NAME,FILE_SIZE}
-					wt.add(pathFiles[i]);
-					wt.add(fileNames[i]);
-					wt.add(*fileSize);
-					ret.add(wt());
-				}
-				catch(const std::exception& e)
-				{
-					std::cerr << "ALARM!!!" << std::endl;
-					std::cerr << e.what() << '\n';
-					getc(stdin);
-					break;
-				}
-			}
-
-	 std::vector <uint8_t> buff  = ret();
-	 //utils::set_size()
-	 IoTransactor::_writeParams(_socket, buff.size() ,"_NEW_GUID_001_");	
-		//	IOTRasactor::_writeParams()	
-			//writeParams<bufferType_12,baseFileDesc,false>(fileNames.size(),"_NEW_GUID_001_");
-	 size_t writed =	boost::asio::write(_socket,boost::asio::buffer( buff ));
-	#ifdef DBGQUERY_FILES_AND_PATHS	
-		_LOG::out_s << "writed = " << writed << std::endl;
-		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-	#endif
-	}
 
 	#define DBG_HEADER_RD_HANDLER
 	#define DBG_GET_RECORDS_FOR_CHECKING
@@ -303,33 +217,18 @@ private:
 		
 		//mainDesc md = 
 		DA::mainDesc_s md =	mainDescExctractor(xfer);
+		
+		//DA::mainDescNorm md = mainDescAndBlocksExtractor(Tmp);
 		#ifdef DBG_HEADER_RD_HANDLER	
 			_LOG::out_s << "md.fileGuid = " << md.fileGuid << " HEADER_SIZE =" << HEADER_SIZE  
 			<< " xfer = " << xfer << " md.size"  << md.size <<  "  md.sessionId = " <<  md.sessionId  << " md.typeOf = " << md.typeOf << std::endl;
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 			END()
-		#endif	
+		#endif
+	//	stub_dispatch_action(md);	
 		switch (md.typeOf)
 		{
-			case DA::QUERY_FILES_AND_PATHS:
-			{
-		#ifdef DBG_HEADER_RD_HANDLER
-				LOGTOFILE(LOGHTML::messageType::WARNING,"QUERY_FILES_AND_PATHS");
-		#endif
-				queryFilesAndPaths();	
-				readHeader();
-			}
-			break;
 
-			case GET_RECORDS_FOR_CHECKING:
-			{
-			#ifdef DBG_GET_RECORDS_FOR_CHECKING
-				LOGTOFILE(LOGHTML::messageType::WARNING,"GET_INFO_RECORDS");
-			#endif
-				queryMainData(md);					
-				readHeader();
-			}
-			break;
 
 			case CREATE_NEW_RECORDS:
 			{
@@ -340,6 +239,7 @@ private:
 				readBucket();	
 			}
 			break;
+
 			case UPDATE_RECORDS_COUNT12:	
 			{
 				#ifdef DBG_HEADER_RD_HANDLER
@@ -350,7 +250,30 @@ private:
 			}
 			break;	
 
+			case GET_RECORDS_FOR_CHECKING:
+			{
+			#ifdef DBG_GET_RECORDS_FOR_CHECKING
+				LOGTOFILE(LOGHTML::messageType::WARNING,"GET_INFO_RECORDS");
+			#endif
+				IoTransactor::queryMainData<boost::asio::ip::tcp::socket,DA::mainDescNorm>(_socket,DA::mainDescNorm(md));					
+				readHeader();
+			}
+			break;
+
+			case DA::QUERY_FILES_AND_PATHS:
+			{
+		#ifdef DBG_HEADER_RD_HANDLER
+				LOGTOFILE(LOGHTML::messageType::WARNING,"QUERY_FILES_AND_PATHS");
+		#endif
+				IoTransactor::queryFilesAndPaths(_socket);	
+				readHeader();
+			}
+			break;
+
+			break;
+
 		}
+		
 	#ifdef DBG_HEADER_RD_HANDLER	
 		END()
 	#endif	
@@ -556,141 +479,6 @@ private:
 #endif	
 	}
 
-
-	#define DBG_QUERY_MAIN_DATA
-	template
-	<
-		typename bufferType
-	>
-	bool queryMainData(bufferType md)
-	{
-	#ifdef  DBG_QUERY_MAIN_DATA	
-		BEGIN()
-	#endif
-		if ((GET_RECORDS_FOR_CHECKING != md.typeOf)|| (is_complete()))
-			return (false);
-
-			std::string fileGuid(md.fileGuid);
-	#ifdef  DBG_QUERY_MAIN_DATA		
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,"try to getGuid...");
-	#endif
-		IO_CRUD::_fileCache fc;
-		DB::my_recordSet rc;
-		try
-		{ 
-			rc = fc.getFilesAndGuidsByPath(md.pathFile);
-		}
-		catch(std::runtime_error &re)
-		{
-			throw re;	
-		}
-	#ifdef  DBG_QUERY_MAIN_DATA		
-			_LOG::out_s << "rc.size() = " << rc.size() << " rc.count('fileName') =" <<  rc.count("fileName") << std::endl;
-			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-	#endif
-		std::string fileName = md.fileName;	
-		
-		std::vector<std::string> fileNames = rc["fileName"];
-	#ifdef  DBG_QUERY_MAIN_DATA		
-			_LOG::out_s << "md.pathFile = " << md.pathFile << " fileName = " << fileName << " in fileNames.size() = " << fileNames.size() << std::endl;
-			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-	#endif
-		std::vector<std::string>::iterator It =	std::find_if(fileNames.begin(),fileNames.end(),[fileName](std::string str){
-				return (!fileName.compare(str));
-			});
-
-	#ifdef  DBG_QUERY_MAIN_DATA		
-		types::ul_long _hash =  utils::minicache::str_hash(fileName)/10000;
-		if (fileNames.end() != It)
-		{ 
-			_LOG::out_s << "PATH_FOUND = " << *It << std::endl;
-			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-		}
-		else
-		{
-
-			_LOG::out_s << "fileName  = " << fileName << " _hash = " << _hash << " NOT_FOUND" << std::endl;
-			throw (std::runtime_error(_LOG::out_s.str()));
-		}
-	#endif
-
-		size_t index = std::distance(fileNames.begin(),It);
-
-		fileGuid  = (!fileGuid.compare(std::string("NOT_PRESENT")))? rc["fileGuid"][index] : fileGuid;
-
-	#ifdef  DBG_QUERY_MAIN_DATA		
-		_LOG::out_s <<	" index = "<<	index  << " fileGuid = " << fileGuid  << std::endl;
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-	#endif
-		size_t recordCount = 0;
-		try
-		{
-			
-			IO_CRUD::cachedRecords cr(fileGuid);
-			cr.actuallyRecordSet(fileGuid);
-			recordCount =  cr.exist(fileGuid) ? cr.get(fileGuid)["idx"].size() : 0 ;
-		}
-		catch(const std::runtime_error re)
-		{
-			_LOG::out_s <<	"re.what() = " << re.what() << std::endl;
-			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-			throw re;	
-		}
-		catch(const std::exception& e)
-		{
-			_LOG::out_s <<	"e.what() = " << e.what() << std::endl;
-			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-			throw e;	
-		}
-		
-	#ifdef  DEBUG_SELECT_TRAKT		
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,"try to write...");
-		_LOG::out_s <<  "fileGuid = " << fileGuid << std:: endl;
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-		_LOG::out_s <<	"recordCount = " << recordCount << std::endl;
-		_LOG::out_s <<  "bufferType_4000::SIZE_OF_BLOCKS =" << bufferType_4000::SIZE_OF_BLOCKS << std::endl;
-		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-	#endif		
-		
-		/*
-		Допилить разрыв соединения, так , чтобы клиент подтвердил согласие на разрыв.
-		*/
-		size_t writed = 0;
-		try
-		{
-			writed = IoTransactor::sendData<   boost::asio::ip::tcp::socket, bufferType>( _socket,md);
-		}
-		catch(const std::exception& e)
-		{
-			_LOG::out_s <<"CATCHED exception"<< e.what() << '\n';			
-			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
-			throw e;	
-
-		}
-		
-	#ifdef  DEBUG_SELECT_TRAKT		
-		_LOG::out_s <<	"writed = " <<	writed << "bufferType_12::SIZE_OF_BLOCKS = " << bufferType_4000::SIZE_OF_BLOCKS << std::endl;
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-	#endif		
-	//	if (bufferType_4000::SIZE_OF_BLOCKS == writed)
-	//	{	
-//	#ifdef  DEBUG_SELECT_TRAKT		
-//			LOGTOFILE(LOGHTML::messageType::MESSAGE,"Normal execution..try to stop query.");
-//	#endif
-
-//		}
-//		else
-//		{
-//			_LOG::out_s <<	"writed = " <<	writed << "transfered data size mismatch" << std::endl;
-//				throw(std::runtime_error(_LOG::out_s.str()));
-//		}
-		//LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,"--queryMainData()");
-	//	rd_stop();
-		return (true);
-
-	}
-
 	#define DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 	DA::mainDescNorm mainDescAndBlocksExtractor(std::vector<uint8_t> buffer)
 	{
@@ -805,7 +593,13 @@ private:
 		_LOG::out_s << "  md.typeOf = " << md.typeOf  << std::endl;
 		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 	#endif
-			switch (md.typeOf)
+		if (is_complete())
+	#ifdef  STUB_DISPATCH_ACTION
+	END();
+	#endif
+			return;
+
+	switch (md.typeOf)
 			{
 				case CREATE_NEW_RECORDS:
 				{
@@ -873,6 +667,34 @@ private:
 					}
 				}
 				break;
+							case DA::QUERY_FILES_AND_PATHS:
+			{
+		#ifdef DBG_HEADER_RD_HANDLER
+				LOGTOFILE(LOGHTML::messageType::WARNING,"QUERY_FILES_AND_PATHS");
+		#endif
+				IoTransactor::queryFilesAndPaths<boost::asio::ip::tcp::socket>(_socket);	
+				readHeader();
+			}
+			break;
+
+			case GET_RECORDS_FOR_CHECKING:
+			{
+			#ifdef DBG_GET_RECORDS_FOR_CHECKING
+				LOGTOFILE(LOGHTML::messageType::WARNING,"GET_INFO_RECORDS");
+			#endif
+				IoTransactor::queryMainData<boost::asio::ip::tcp::socket,DA::mainDescNorm>(_socket , md);					
+				readHeader();
+			}
+			break;
+			#define DBG_QUERY_LAYERS
+			case QUERY_LAYERS:
+			{
+				#ifdef DBG_QUERY_LAYERS
+					LOGTOFILE(LOGHTML::messageType::WARNING,"GET_LAYERS_BY_FILEGUID:");
+				#endif
+				IoTransactor::LayersByGuidAnswer(md.fileGuid);
+			}
+			break;
 			}		
 	#ifdef  STUB_DISPATCH_ACTION
 		END();

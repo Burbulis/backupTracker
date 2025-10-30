@@ -156,7 +156,7 @@ public:
 		{
 			layers = layersAPI::getAllLayers();//передёргиваем слои в контейнере, 
 		}
-
+			
 		template
 		<
 			typename T
