@@ -8,14 +8,14 @@
 #include <set>
 #include <list>
 #include <typeinfo>
-#include "_log.hpp"
-#include "SqClass.h"
+#include "log/_log.hpp"
+#include "sql/SqClass.h"
 #include "typedef.hpp"
 #include "uid_and_chk.hpp"
 #include "serialiser.hpp"
 #include "memmgr.hpp"
 #include "utils.hpp"
-#include "dbquery.hpp"
+#include "dbqueries.hpp"
 #include "sql/sqlcmdType.hpp"
 #include "sql/insert.hpp"
 #include "sql/update.hpp"
@@ -23,7 +23,7 @@
 #include "sql/selectAndJoin.hpp"
 #include "sql/sqlGenerator.hpp"
 #include "sql/sqlcopy.hpp"
-#include "data_and_structs.hpp"
+//#include "data_and_structs.hpp"
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/smart_ptr.hpp>

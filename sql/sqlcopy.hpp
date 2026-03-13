@@ -7,6 +7,7 @@
 #include "sqlGenerator.hpp"
 namespace SQLCMD
 {
+	inline    
 	std::string
 	SqlCopy(std::string sqlTableFrom, std::string sqlTableTo, SQLCMD::selector_type fildsDesc)
 	{

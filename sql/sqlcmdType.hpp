@@ -27,6 +27,7 @@ namespace SQLCMD
 
     namespace utils
     {
+	inline
         std::string
             Newuid()
         {
@@ -36,6 +37,7 @@ namespace SQLCMD
             return (t);
         }
 
+	inline
         types::ul_long
             str_hash(std::string str)
         {
@@ -46,6 +48,7 @@ namespace SQLCMD
             return (ret);
         }
         
+	inline
         types::ul_long
             getHashId(void)
         {
@@ -107,7 +110,7 @@ namespace SQLCMD
         types::ui_int current_instance;
         types::ul_long id;
         types::ul_long linkedId;
-        static types::ui_int instance_counter;
+        types::ui_int instance_counter;
         std::string joinedTable;
         std::string tmpGuid;
 
@@ -287,7 +290,7 @@ namespace SQLCMD
         void
         clearInstanceCounter()
         {
-            instance_counter = 0;
+//            instance_counter = 0;
         }
 
         void setAsNowTimeStamp()
@@ -315,7 +318,7 @@ namespace SQLCMD
         }
     };
 
-    types::ui_int valdesc::instance_counter = 0;
+//    types::ui_int valdesc::instance_counter = 0;
     typedef std::map <std::string  , valdesc> selector_type;
     typedef std::multimap<std::string, valdesc > multi_selector_type;
     typedef std::pair<std::string , valdesc> pair;

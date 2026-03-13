@@ -6,17 +6,16 @@
 
 
 #define NOTHROW throw(std::)
-/*
-	Зарефакторить всё это говно к херам, убрать new вообще!
 
-*/
-
-
+template
+<
+	typename T
+>
 
 class mem_mgr
 {
 	
-    std::vector<char> dataBuffer;
+    std::vector<T> dataBuffer;
 	//size_t size_;
 	bool blocked;
 	public:
@@ -50,7 +49,7 @@ class mem_mgr
 		if(blocked)
 			return (false);
 		
-		TRACE_ARG(size);
+	//	TRACE_ARG(size);
 		blocked = true;
 		dataBuffer.clear();
 		dataBuffer.resize(size);
@@ -64,7 +63,6 @@ class mem_mgr
 	{
 		if(blocked)
 			return (false);	
-		TRACE();
 		memset( dataBuffer.data(),110,dataBuffer.size());
 		return (true);
 	}
@@ -72,25 +70,21 @@ class mem_mgr
 	size_t
 	size() const noexcept
 	{
-		TRACE();
 		return (dataBuffer.size());
 	}
 	
-	char *ptr() 
+	T *ptr() 
 	{
-		TRACE();
 		return (dataBuffer.data()); 
 	}
 
-	std::vector<char>::iterator begin()
+	typename std::vector<T>::iterator begin()
 	{
-		TRACE();
 		return (dataBuffer.begin());
 	}
 
-	std::vector<char>::iterator end()
+	typename std::vector<T>::iterator end()
 	{
-		TRACE();
 		return (dataBuffer.end());
 	}
 
@@ -99,7 +93,7 @@ class mem_mgr
 		if(blocked)
 			return (false);
 
-		TRACE_ARG(size);
+		//TRACE_ARG(size);
 
 		if (size <= this->size())
 			memcpy(dataBuffer.data(),buffer,size);
@@ -127,16 +121,15 @@ bufferType::SIZE_OF_BLOCKS // размер всех блоков в буффер
 	{		
 		if(blocked)
 			return (false);
-		TRACE_ARG(begin_position);
+		//TRACE_ARG(begin_position);
 		memcpy(reinterpret_cast<char *>(&faBuffer->data[0]),&ptr()[begin_position],bufferType::SIZE_OF_BLOCKS);
 		return (true);
 	}
 
-	bool set(std::vector<char>& buff)
+	bool set(std::vector<T>& buff)
 	{
 		if(blocked)
 			return (false);
-		TRACE();
 		buff.resize(dataBuffer.size()+1);
 		memcpy(&buff[0],&dataBuffer[0],dataBuffer.size());
 		return (true);
@@ -152,7 +145,7 @@ bufferType::SIZE_OF_BLOCKS // размер всех блоков в буффер
 	>
 	std::unique_ptr<bufferType> make(size_t begin_position)
 	{	
-		TRACE_ARG(begin_position);
+		//TRACE_ARG(begin_position);
 		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"++make()");
 		_LOG::out_s << "bufferType::SIZE_OF_BLOCKS = " << bufferType::SIZE_OF_BLOCKS <<" begin_position = " << begin_position << "bufferType::BUFFER_SIZE = " << bufferType::BUFFER_SIZE << " size() =" << size() << std::endl;
 		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
@@ -173,7 +166,7 @@ bufferType::SIZE_OF_BLOCKS // размер всех блоков в буффер
 	size_t
 	findSeq(const Seq& token)
 	{
-		TRACE_ARG(token)
+		//TRACE_ARG(token)
 		std::vector<char>::iterator iter =  std::search(dataBuffer.begin(),dataBuffer.end(),token.begin(),token.end());
 		if (iter!=dataBuffer.end())
 			return (std::distance(dataBuffer.begin(),iter));
@@ -185,22 +178,20 @@ bufferType::SIZE_OF_BLOCKS // размер всех блоков в буффер
 		if(blocked)
 			return (false);
 
-		TRACE_ARG(buffer.size());
+		//TRACE_ARG(buffer.size());
 		reinit(buffer.size());
 		memcpy(&dataBuffer[0],&buffer[0],buffer.size());
 		return (true);
 	}
 
-	std::vector<char>&
+	std::vector<T>&
 	getMem(void) 	
 	{
-		TRACE();
 		return (dataBuffer);
 	} 
 
 	~mem_mgr()
 	{
-		TRACE();
 	}
 
 };

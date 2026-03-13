@@ -19,9 +19,8 @@ class server:public __io
     server(size_t port):acceptor(get(),
 	boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(),port))
     {
-		_LOG::out_s << "typeWithBuffer::TBUFF_SIZE =" << bufferType_12::TBUFF_SIZE << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-		connector = tcp_connection::create<headerType>(get());
+		connector = tcp_connection::create(get());
 		_LOG::out_s << "run_one::connector->complete()==" << tcp_connection::is_complete() << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 		start();
@@ -110,7 +109,7 @@ void signal_handler(int signal)
 {
     gSignalStatus = signal;
 	
-	tcp_connection::showConsoleTraceLog();
+	//tcp_connection::showConsoleTraceLog();
 	std::cout << "stop the program.." << std:: endl;
 	LOGSTOP();
 	exit(signal);

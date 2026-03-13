@@ -3,6 +3,7 @@
 #include "sqlcmdType.hpp"
 namespace SQLCMD
 {
+    inline
     selector_type_v
     get_ordered(const selector_type m)
     {
@@ -17,6 +18,7 @@ namespace SQLCMD
         return (v);
     }
 
+    inline
     selector_type_v
     get_ordered(const multi_selector_type m)
     {
@@ -32,7 +34,7 @@ namespace SQLCMD
     }
 
 
-
+    inline
     selector_type_v
     type_v(const selector_type m)
     {

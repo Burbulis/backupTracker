@@ -1,6 +1,7 @@
 #include <map>
 #include <string>
-#include "layersIO.hpp"
+//#include "layersIO.hpp"
+#include "layers/layersHelper.h"
 #include "base.h"
 #ifndef _MINICACHE_
 #define _MINICACHE_
@@ -55,18 +56,19 @@ namespace IO_CRUD
 /// @param layerHash //хэш интересующего слоя(по умолчанию базовый).
 /// @return возвращает recordSet Для полей:
 ///buckets_and_blocks.fileGuid,buckets_and_blocks.idx,buckets_and_blocks.bucketGuid,buckets_and_blocks.blockGuid,layers.layerGuid,blocks.chk,buckets.bucket,buckets.checks
- struct cachedRecords 
+ class cachedRecords 
  {
     typedef std::map<std::string,DB::my_recordSet> cachedRecordsType;
     typedef std::map<  SQLCMD::types::ul_long, cachedRecordsType > cachedRecordsByLayerIdType; 
 
     #define CACHED_RECORDS_DEBUG
+    public:
     cachedRecords(std::string fileGuid)
     {
 
 	#ifdef  CACHED_RECORDS_DEBUG		
 		BEGIN()
-        _LOG::out_s << "cachedRecords.ctor(0) fileGuid = " << fileGuid << std:: endl;
+        _LOG::out_s << ".ctor(0) fileGuid = " << fileGuid << std:: endl;
 		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 	#endif
 
@@ -242,9 +244,9 @@ namespace IO_CRUD
         SQLCMD::types::ul_long _LAYER_HASH_ID  = layerHash; 
         if (!layerHash)
         {
-            LayersIO::layersHelper max_helper(fileGuid);    
+            Layers::layersHelper max_helper(fileGuid);    
             max_helper.setLayers();
-            _LAYER_HASH_ID =max_helper.getLastLayer<SQLCMD::types::ul_long>(std::string("layerHash"));
+            _LAYER_HASH_ID =max_helper.getLastLayerId();//getLastLayer<SQLCMD::types::ul_long>(std::string("layerHash"));
     	  //  auto layers = LAYER_QUERIES::getBaseLayer();
             #ifdef EXIST_IN_CACHE
                 _LOG::out_s << "_LAYER_HASH_ID = " << _LAYER_HASH_ID <<  std::endl;
@@ -263,22 +265,23 @@ namespace IO_CRUD
 
 
 
-    #define GET_CURRENT_RECORD
+    //#define GET_CURRENT_RECORD
     DB::my_recordSet
     get_current_record(std::string fileGuid)
     {
         #ifdef GET_CURRENT_RECORD
         LOGTOFILE( LOGHTML::messageType::STRONG_WARNING,"++get_current_hash("+fileGuid+")" );
         #endif
-        LayersIO::layersHelper _helper(fileGuid);    
+      //  LayersIO::layersHelper _helper(fileGuid);    
+        Layers::layersHelper _helper(fileGuid);  
         _helper.setLayers();
-        SQLCMD::types::ul_long FirstId  = _helper.getFirstLayer< SQLCMD::types::ul_long >("layerId");
-        SQLCMD::types::ul_long lastId = _helper.getLastLayer< SQLCMD::types::ul_long >("layerId");
+        SQLCMD::types::ul_long FirstId  = _helper.getFirstLayerId();//getFirstLayer< SQLCMD::types::ul_long >("layerId");
+        SQLCMD::types::ul_long lastId   = _helper.getLastLayerId();//getLastLayer< SQLCMD::types::ul_long >("layerId");
         #ifdef GET_CURRENT_RECORD
         _LOG::out_s <<  "FirstId = " << FirstId << " lastId = " << lastId << std::endl;
         LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
         #endif
-        auto layerHash = _helper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",lastId);  
+        auto layerHash = _helper.getHashById(lastId); //getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",lastId);  
         #ifdef GET_CURRENT_RECORD
           _LOG::out_s <<  " layerHash = " << *layerHash << std::endl;
           LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);       
@@ -298,23 +301,27 @@ namespace IO_CRUD
         for (SQLCMD::types::ul_long i = lastId ;i > FirstId ; --i)
         {
 
-            layerHash = _helper.getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",i);  
+            layerHash = _helper.getHashById(i);//getlayerSomeThingRelationNameByName< SQLCMD::types::ul_long , SQLCMD::types::ul_long >("layerHash","layerId",i);  
             #ifdef DEBUG_SELECT_TRAKT
             _LOG::out_s <<  "layerHash = " << *layerHash << " i = " << i << std::endl;
             LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
             #endif
 
             DB::my_recordSet _sq  = selectMainDataSqlCmd(_helper.getFileGuid(),*layerHash);   
-          //  if (!chkFiller(_sq))
-          //  {
-                chk_s_current = DataSetAPI::getSomeThingByName< std::vector<SQLCMD::types::ul_long> >("chk",_sq);
+
+            chk_s_current = DataSetAPI::getSomeThingByName< std::vector<SQLCMD::types::ul_long> >("chk",_sq);
                 nLayerId = i;
                 
                 std::vector< std::string > chk_s;
-                std::transform(chk_s_last.begin(),chk_s_last.end(),chk_s_current.begin(),std::back_inserter(chk_s) ,[](SQLCMD::types::ul_long larg,SQLCMD::types::ul_long rarg){
-                        auto result = ( ( larg == FILLERS::FILESIZE_INCREASE )||( larg == FILLERS::FILESIZE_REDUCTION ) || (larg == FILLERS::FILLER_FILESIZE_NO_CHANGED) )? rarg : larg;
+                std::transform(chk_s_last.begin(),chk_s_last.end(),chk_s_current.begin(),std::back_inserter(chk_s) ,[](SQLCMD::types::ul_long larg,SQLCMD::types::ul_long rarg)
+                {
+                        auto result = ( ( larg == DA::FILLERS::FILESIZE_INCREASE )||( larg == DA::FILLERS::FILESIZE_REDUCTION ) || (larg == DA::FILLERS::FILLER_FILESIZE_NO_CHANGED) )? rarg : larg;
                         return ( std::to_string(result) );
-                });   
+                }
+            );   
+
+            
+
         #ifdef GET_CURRENT_RECORD
             for (auto s:chk_s)
             {
@@ -322,7 +329,7 @@ namespace IO_CRUD
                 LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
             }         
         #endif
-                    _sq["chk"].clear();
+                _sq["chk"].clear();
                 _sq["chk"] = chk_s;
                 return (_sq);          
         }      
@@ -355,10 +362,9 @@ namespace IO_CRUD
     }
 
     
-    void
-    actuallyRecordSet(const std::string& fileGuid)
+    void  actuallyRecordSet(const std::string& fileGuid)
     {
-        #ifdef DEBUG_SELECT_TRAKT 
+      #ifdef DEBUG_SELECT_TRAKT 
             BEGIN();
         #endif	
  
@@ -375,9 +381,9 @@ namespace IO_CRUD
         #ifdef  FIRST_PROTOTYPE
           BEGIN();
         #endif	
-        LayersIO::layersHelper helper_one(fileGuid);
+        Layers::layersHelper helper_one(fileGuid);
         helper_one.setLayers();   
-        std::vector<SQLCMD::types::ul_long> hash_s = helper_one.getlayerSomeThingByName< std::vector<SQLCMD::types::ul_long> >("layerHash");
+        std::vector<SQLCMD::types::ul_long> hash_s = helper_one.getHashes();//getlayerSomeThingByName< std::vector<SQLCMD::types::ul_long> >("layerHash");
         for (auto h:hash_s)
         {
         #ifdef FIRST_PROTOTYPE 
@@ -390,12 +396,10 @@ namespace IO_CRUD
             END();
         #endif	
     }
-
- 
-   private:
-     static cachedRecordsByLayerIdType  _cache;
+ private:
+    static  cachedRecordsByLayerIdType  _cache;
  };
-cachedRecords::cachedRecordsByLayerIdType cachedRecords::_cache;
+ cachedRecords::cachedRecordsByLayerIdType cachedRecords::_cache;
 _fileCache::cacheType _fileCache::_cache;
 }
 

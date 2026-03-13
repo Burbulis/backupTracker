@@ -2,7 +2,7 @@
 
 #ifndef SHPROTA_WRITE
 #define SHPROTA_WRITE
-
+#include <iostream>
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -43,6 +43,7 @@ namespace shprotaBuff
 		}
 		//uint64_t crc(void);
 	public:
+		writeTo():Id(0){}
 		std::vector <uint8_t>	operator ()();
 		void add(uint32_t val);
 		void add(uint64_t val);

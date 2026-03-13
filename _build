@@ -1,0 +1,11 @@
+#rm ./lib/*
+rm ./obj/result
+
+g++ -ggdb -std=c++17 -DBOOST_JSON_HEADER_ONLY  main.cpp \
+-I /home/kotus/boost_1_80_0 \
+-L ./lib \
+-lconfig -lspf_reader -lspf_writer -llog -lsq_class -l_layershelper \
+-L /home/kotus/boost_1_80_0/stage/lib \
+-lboost_system -lboost_filesystem -lboost_thread  -lpthread -lsqlite3 \
+-o ./obj/result 2>&1 | tee out.log
+cp ./obj/result ./result

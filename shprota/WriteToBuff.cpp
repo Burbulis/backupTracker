@@ -84,7 +84,7 @@ namespace shprotaBuff
 
 
 	std::vector <uint8_t>
-		writeTo::operator () ()
+		writeTo::operator ()()
 	{
 		enum {ID_COUNT = 1 , _BUFFER = 2, CRC = 3};
 		std::unique_ptr<shprotaBuff::writeTo> packer =

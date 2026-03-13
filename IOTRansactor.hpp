@@ -1,9 +1,12 @@
 #include <boost/asio.hpp>
 #include "utils.hpp"
 #include "shprota/ReadFromBuff.h"
-#include "BlocksAndLayers.hpp"
-#include "datasetAPI.hpp"
+#include "dataset/datasetAPI.hpp"
 #include "miniCache.hpp"
+
+#ifndef __IOTRANSACTOR__
+#define __IOTRANSACTOR__
+
 namespace IoTransactor
 {
 
@@ -30,7 +33,6 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
 	>
 	static size_t sendData(Tsocket& _socket,bufferType md)
 	{
-		TRACE();
 	#ifdef  SEND_DATA
 		BEGIN()
 		_LOG::out_s  << ".typeOf =" << md.typeOf << " REAL_QUERY!" << std::endl;
@@ -162,11 +164,12 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
 			LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif
 			shprotaBuff::writeTo ret;			
+			//LayersIO::layersHelper lhelper()
 			for (size_t i = 0 ; i < fileGuids.size(); ++i)
 			{
 				try
 				{
-					auto fileSize = layersAndBlocks::getFileSizeByGuid( fileGuids[i]);
+					auto fileSize =  LayersIO::getFileSizeByGuid(fileGuids[i]); //::getFileSizeByGuid( fileGuids[i]);
 					_LOG::out_s << "fileSize = " << *fileSize << " fileGuid[" << i  << "]" << fileGuids[i]  << std::endl;
 					LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 					shprotaBuff::writeTo wt;
@@ -189,7 +192,6 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
 	 //utils::set_size()
 	 IoTransactor::_writeParams(_socket, buff.size() ,"_NEW_GUID_001_");	
 		//	IOTRasactor::_writeParams()	
-			//writeParams<bufferType_12,baseFileDesc,false>(fileNames.size(),"_NEW_GUID_001_");
 	 size_t writed =	boost::asio::write(_socket,boost::asio::buffer( buff ));
 	#ifdef DBGQUERY_FILES_AND_PATHS	
 		_LOG::out_s << "writed = " << writed << std::endl;
@@ -241,7 +243,7 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
 		types::ul_long _hash =  utils::minicache::str_hash(fileName)/10000;
 		if (fileNames.end() != It)
 		{ 
-			_LOG::out_s << "PATH_FOUND = " << *It << std::endl;
+			_LOG::out_s << "fileNames It = " << *It << std::endl;
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 		}
 		else
@@ -254,7 +256,7 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
 
 		size_t index = std::distance(fileNames.begin(),It);
 
-		fileGuid  = (!fileGuid.compare(std::string("NOT_PRESENT")))? rc["fileGuid"][index] : fileGuid;
+		fileGuid  = (!fileGuid.compare(std::string("_NO_GUID_")))? rc["fileGuid"][index] : fileGuid;
 
 	#ifdef  DBG_QUERY_MAIN_DATA		
 		_LOG::out_s <<	" index = "<<	index  << " fileGuid = " << fileGuid  << std::endl;
@@ -286,7 +288,6 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
 		_LOG::out_s <<  "fileGuid = " << fileGuid << std:: endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 		_LOG::out_s <<	"recordCount = " << recordCount << std::endl;
-		_LOG::out_s <<  "bufferType_4000::SIZE_OF_BLOCKS =" << bufferType_4000::SIZE_OF_BLOCKS << std::endl;
 		LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 	#endif		
 		size_t writed = 0;
@@ -302,7 +303,7 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
 
 		}	
 	#ifdef  DEBUG_SELECT_TRAKT		
-		_LOG::out_s <<	"writed = " <<	writed << "bufferType_12::SIZE_OF_BLOCKS = " << bufferType_4000::SIZE_OF_BLOCKS << std::endl;
+		_LOG::out_s <<	"writed = " <<	writed << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 		END();
 	#endif		
@@ -314,19 +315,18 @@ static size_t _writeParams(Tsocket& _socket ,const uint64_t _sizeOf ,std::string
  ***************************************************************************/
 	std::vector<uint8_t> LayersByGuidAnswer(std::string fileGuid)
 	{
-		LayersIO::layersHelper Layers(fileGuid);
-		Layers.setLayers();
-		std::vector<SQLCMD::types::ul_long> layersHashes =  Layers.getlayerSomeThingByName< std::vector<SQLCMD::types::ul_long> >("layerHash");
+		Layers::layersHelper _layers(fileGuid);
+		_layers.setLayers();
+		std::vector<SQLCMD::types::ul_long> layersHashes =  _layers.getHashes();//Layers.getlayerSomeThingByName< std::vector<SQLCMD::types::ul_long> >("layerHash");
 		shprotaBuff::writeTo bufflayers;
-  		for ( size_t i = 0; i < layersHashes.size(); ++i)
+  		
+		for ( size_t i = 0; i < layersHashes.size(); ++i)
     		bufflayers.add(uint64_t(layersHashes[i]));
-  		size_t count = bufflayers.getId();
-  		return bufflayers();
+  		
+			size_t count = bufflayers.getId();
+  		
+		return bufflayers();
 	}
-
-
-
-
-
 }
+#endif
 

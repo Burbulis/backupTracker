@@ -3,18 +3,19 @@
 
 #include <vector>
 #include <string>
-#include "_log.hpp"
+#include "log/_log.hpp"
 #include "typedef.hpp"
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 using namespace types;
-class uid_sAndId_s
+namespace uid_sAndId_s
 {
-public:
+//public:
 
-    static
-        std::string
-        Newuid()
+ //   static
+    inline
+    std::string
+    Newuid()
     {
         boost::uuids::uuid uid_ = boost::uuids::random_generator()();
         auto iter = uid_.begin();
@@ -22,11 +23,11 @@ public:
     }
 
     template
-        <
-        typename T,
-	typename R
-        >
-        static
+    <
+       typename T,
+	    typename R
+    >
+ //       static
         R
      chkCoder(char* begin, char* end, size_t _blockIndex)
     {
@@ -41,7 +42,8 @@ public:
         return (result);
     }
 
-    static
+   // static
+    inline
     size_t
     chkCoderFunc(unsigned long *_tbegin,unsigned long *_tend,size_t _blockIndex)
     {
@@ -60,7 +62,8 @@ public:
         return (result);
     }
 
-    static
+    //static
+    inline
     size_t
     chkCoderFuncX(DWORD64* _tbegin, DWORD64* _tend, size_t _blockIndex)
     {
@@ -79,7 +82,8 @@ public:
         return (result);
     }
 
-    static
+    //static
+	inline
     types::ul_long
     chkCoderFunc(types::DWORD64* _tbegin,types::DWORD64* _tend, size_t _blockIndex)
     {
@@ -128,7 +132,8 @@ public:
     }
 
 
-    static
+//    static
+    inline
     types::ul_long
     chkCoderFunc(types::ui_int *_tbegin, types::ui_int *_tend, size_t _blockIndex)
     {

@@ -1,16 +1,19 @@
 #include <string>
 #include <set>
-#include <boost/json/src.hpp>
-#include "data_and_structs.hpp"
-#include "dbquery.hpp"
+//#include <boost/json/src.hpp>
+#include "DA_.hpp"
+#include "dbqueries.hpp"
 #include "sql/sqlcmdType.hpp"
+#include <fstream> // Required for ifstream
+#include <iostream> // Required for cout and endl
+#include <string> // Required for string
 
 #ifndef __UTILS__
 #define __UTILS__
 namespace utils
 {
-
-  const std::vector<uint8_t>
+	inline
+	const std::vector<uint8_t>
 	set_size(const std::vector<uint8_t> buffer,size_t newSize)
 	{
 		std::vector<uint8_t> Tmp;
@@ -21,6 +24,7 @@ namespace utils
 	}
 	namespace time
 	{
+		inline
 		std::string
 		toTimeString(time_t _time)
 		{
@@ -35,7 +39,7 @@ namespace utils
     {
         struct Minicache
         {
-        static std::set<size_t> _hashes;
+            std::set<size_t> _hashes;
             bool exist(size_t h)
             {
                 if (!_hashes.count(h))
@@ -47,7 +51,7 @@ namespace utils
             }
             
         };
-
+	inline
         types::ul_long
         str_hash(std::string str)
         {
@@ -58,6 +62,7 @@ namespace utils
             return (ret);
         }
 
+	inline
         types::ul_long
         str_hash(std::string str ,unsigned long idx)
         {
@@ -68,7 +73,7 @@ namespace utils
             return (ret);
         }
 
-        std::set<size_t> Minicache::_hashes;
+        //std::set<size_t> Minicache::_hashes;
     }
 
 
@@ -121,7 +126,7 @@ namespace utils
 	static bool isFiller(typename bufferType::CURRENT_TYPE& val)
 	{
 		return 	(
-					(val.status == FILLERS::FILESIZE_REDUCTION)
+					(val.status == DA::FILLERS::FILESIZE_REDUCTION)
 				);
 
 	}
@@ -133,11 +138,8 @@ namespace utils
 	static bool isFiller(const bufferType& val)
 	{
 		return 	(
-
-					(val.status == FILLERS::FILESIZE_REDUCTION)||
-					(val.status == FILLERS::FILLER_FILESIZE_REPLACEMENT)||
-					(val.status == FILLERS::FILLER_FILESIZE_NO_CHANGED)
-				//	&&	!_blockGuid.compare(blockGuid)
+					(val.status == DA::FILLERS::FILESIZE_REDUCTION)||
+					(val.status == DA::FILLERS::FILLER_FILESIZE_NO_CHANGED)
 				);
 
 	}
@@ -158,7 +160,7 @@ namespace utils
 				return 
 				(
 			//	(val.bucket == FILLERS::FILESIZE_INCREASE)||
-				((val.status == FILLERS::FILESIZE_REDUCTION) && !_blockGuid.compare(blockGuid))
+				((val.status == DA::FILLERS::FILESIZE_REDUCTION) && !_blockGuid.compare(blockGuid))
 			//		(val.bucket == FILLERS::FILLER_FILESIZE_REPLACEMENT)||
 			//		(val.bucket == FILLERS::FILLER_FILESIZE_NO_CHANGED))&&
 					
@@ -167,58 +169,7 @@ namespace utils
 		return (It != faBuffer.blocks.end());	
 	}
 
-/*
-	template
-	<
-		typename bufferType
-	>
-	static bool isFiller(bufferType *faBuffer,std::string blockGuid)
-	{
-		const size_t counter = utils::getCountOf(faBuffer);	
-		typename bufferType::CURRENT_TYPE *begin =  reinterpret_cast<typename bufferType::CURRENT_TYPE *>(&faBuffer->buff.t[0]);
-		typename bufferType::CURRENT_TYPE *end =  reinterpret_cast<typename bufferType::CURRENT_TYPE *>(&faBuffer->buff.t[counter]);
-		auto It = 
-		std::find_if(reinterpret_cast<typename bufferType::CURRENT_TYPE *>(begin),reinterpret_cast<typename bufferType::CURRENT_TYPE *>(end),[blockGuid](const typename bufferType::CURRENT_TYPE& val)
-			{
-				std::string _blockGuid = val.blockGuid; 
-				return 
-				((
-			//	(val.bucket == FILLERS::FILESIZE_INCREASE)||
-					(val.bucket == FILLERS::FILESIZE_REDUCTION)||
-					(val.bucket == FILLERS::FILLER_FILESIZE_REPLACEMENT)||
-					(val.bucket == FILLERS::FILLER_FILESIZE_NO_CHANGED))&&
-					!_blockGuid.compare(blockGuid)
-				);
-			}		);
-		return (It!= end);	
-	}
-*/
-	std::string readJson(std::string jsonfile,std::string key)
-	{
-		char tmp[100];
-		std::string test;
-		memset(tmp, 0, 100);
-		std::ifstream readfile(jsonfile);
-		boost::json::value _j;
-		while (readfile.getline(tmp, 100))
-		{
-			std::string json;     
-			auto count_ = strlen(tmp);
-			std::copy(&tmp[0], &tmp[count_], std::back_inserter(json));
-			try
-			{
-				_j = boost::json::parse(json);
-			}
-			catch (const std::exception& e)
-			{
-				continue;
-			}
-			std::string value = _j.at(key).as_string().c_str();
-			return (value);
-			std::cout << value << std::endl;
-		}
-		return (std::string());
-	}
+	
 
 }
 #endif
