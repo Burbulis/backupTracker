@@ -8,7 +8,7 @@
 #include "../sql/sqlGenerator.hpp"
 #include "../sql/selectAndJoin.hpp"
 #include "../sql/insert.hpp"
-#include "../utils.hpp"
+#include "../blocks/utils/utils.hpp"
 #include "../uid_and_chk.hpp"
 #include "../dataset/datasetAPI.hpp"
 namespace layersAPI
@@ -24,7 +24,7 @@ namespace layersAPI
 	static	DB::my_recordSet checkedHashbyLayers(const std::vector<SQLCMD::valdesc>& layerHashesForCheck);
 
 
-	//#define GET_ALL_LAYERS_LOG_ON	
+	#define GET_ALL_LAYERS_LOG_ON	
 	static  DB::my_recordSet  getAllLayers(void)
 	{
 		#ifdef  GET_ALL_LAYERS_LOG_ON
@@ -34,7 +34,8 @@ namespace layersAPI
 		SQLCMD::selector_type m = { 
 						{"layerGuid", SQLCMD::valdesc(SQLCMD::selector_cmd_type::NONE,SQLCMD::selector_cmd_type::NONE,true)},
 						{"layerId", SQLCMD::valdesc(SQLCMD::selector_cmd_type::NONE,SQLCMD::selector_cmd_type::NONE,true)},
-						{"layerHash", SQLCMD::valdesc(SQLCMD::selector_cmd_type::NONE,SQLCMD::selector_cmd_type::NONE,true)}
+						{"layerHash", SQLCMD::valdesc(SQLCMD::selector_cmd_type::NONE,SQLCMD::selector_cmd_type::NONE,true)},
+						{"layer_start", SQLCMD::valdesc(SQLCMD::selector_cmd_type::NONE,SQLCMD::selector_cmd_type::NONE,true)}	
 						};
 
 		SQLCMD::Generator<

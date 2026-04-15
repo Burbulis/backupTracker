@@ -10,12 +10,12 @@
 #include <typeinfo>
 #include "log/_log.hpp"
 #include "sql/SqClass.h"
-#include "typedef.hpp"
+#include "DA/typedef.hpp"
 #include "uid_and_chk.hpp"
-#include "serialiser.hpp"
-#include "memmgr.hpp"
-#include "utils.hpp"
-#include "dbqueries.hpp"
+#include "blocks/serialiser.hpp"
+#include "cache/memmgr.hpp"
+#include "blocks/utils/utils.hpp"
+#include "blocks/dbqueries.hpp"
 #include "sql/sqlcmdType.hpp"
 #include "sql/insert.hpp"
 #include "sql/update.hpp"
@@ -23,7 +23,6 @@
 #include "sql/selectAndJoin.hpp"
 #include "sql/sqlGenerator.hpp"
 #include "sql/sqlcopy.hpp"
-//#include "data_and_structs.hpp"
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/smart_ptr.hpp>

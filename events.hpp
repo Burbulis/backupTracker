@@ -1,6 +1,6 @@
 //#include "layersIO.hpp"
 #include "iocrud.hpp"
-#include "IOTRansactor.hpp"
+#include "IO/IOTRansactor.hpp"
 #include "layers/layersHelper.h"
 
 #ifndef DISPATCHER_EVENTS
@@ -84,22 +84,15 @@ namespace DISPATCHER
                 std::string sessionId = std::string(faBuffer.sessionId);
       #ifdef DBG_ADD_NEW_RECORD
          BEGIN();
-        _LOG::out_s << "fileGuid = " << fileGuid << "sessionId " << sessionId  << std::endl;
+        _LOG::out_s << "fileGuid = " << fileGuid << "sessionId " << sessionId  << " faBuffer.blocks.size() = " << faBuffer.blocks.size() << std::endl;
         LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
     #endif
-
-
-               // LayersIO::layersHelper layerHelper(fileGuid);	
-               // layerHelper.setLayers();
-                Layers::layersHelper layerHelper(fileGuid);
-               //layerHelper.getLastLayer(const std::string());
-                std::string layerGuid ="";
-                SQLCMD::types::ul_long layerHash = 0;
-
-
-                const std::string RECORD_APPROWED = std::string("NEW_LAYER_APPROWED");
-                bool IT_IS_FIRST_UPDATE = false; 
-                bool APPROWED = !sessionId.compare(RECORD_APPROWED);
+            Layers::layersHelper layerHelper(fileGuid);
+            std::string layerGuid ="";
+            SQLCMD::types::ul_long layerHash = 0;
+            const std::string RECORD_APPROWED = std::string("NEW_LAYER_APPROWED");
+            bool IT_IS_FIRST_UPDATE = false; 
+            bool APPROWED = !sessionId.compare(RECORD_APPROWED);
     #ifdef DBG_ADD_NEW_RECORD
         _LOG::out_s << "APPROWED =" << APPROWED << "RECORD_APPROWED = " << RECORD_APPROWED << "sessionId = " << sessionId << std::endl;
         LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
@@ -142,7 +135,6 @@ namespace DISPATCHER
         
                 if (sqlInsert.execInsert(faBuffer,layerHash,[](DA::ul_long var){
                        return (var == DA::FILLERS::FILESIZE_INCREASE || var == DA::FILLERS::FILLER_FILESIZE_CREATED);
-
                 }))
                 {
                     // final transfer token detected.

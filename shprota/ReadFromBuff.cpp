@@ -1,6 +1,11 @@
 #include "ReadFromBuff.h"
 namespace shprotaBuff
 {
+	/***************************************************/
+	void getDescs()
+	{
+
+	}
 /***************************************************/
 	std::optional<std::uint32_t>
 	ReadFrom::getAttribute(std::uint32_t index)
@@ -60,7 +65,6 @@ namespace shprotaBuff
 		return(tmp);
 	}
 /***************************************************/
-/***************************************************/
 	std::optional<uint32_t>
 	ReadFrom::extract32(uint32_t tag)
 	{
@@ -72,7 +76,6 @@ namespace shprotaBuff
 		if ((uint32_t)pbf_wire_type::fixed32 != *switchType)
 		{
 			std::ostringstream _exception_info;	
-		//			throw std::runtime_error("readed type mismatch!");
 		    _exception_info << "readed type mismatch! switchType" << *switchType << " Tag = " << tag << 
 			" file:line:func -  " <<	std::string(__FILE__)  <<  ":" << std::to_string(__LINE__) << ":" << std::string(&__FUNCTION__[0],&__FUNCTION__[strlen(__FUNCTION__)]);
 			throw std::runtime_error(_exception_info.str());
@@ -82,12 +85,14 @@ namespace shprotaBuff
 		memmove(&_buffer[0], buffer.data() + position, sizeof(std::uint32_t));
 		uint32_t ret = 0;
 		decode32(ret, _buffer);
-	//	position += sizeof(std::uint32_t);
-		//itearations[tag] = position;
 		return (ret);
 	}
-
-
+/***************************************************/
+	std::optional<uint32_t>
+		ReadFrom::extract32(std::string tagName)
+	{
+		return (extract32(umapInfo[tagName]));
+	}
 /***************************************************/
  std::optional<uint64_t>
 	ReadFrom::extract64(uint32_t tag)
@@ -111,19 +116,61 @@ namespace shprotaBuff
 		return (ret);
 	}
  /***************************************************/
- bool ReadFrom::operator<<(std::vector<uint8_t> buffer)
+ std::optional<uint64_t>
+	 ReadFrom::extract64(std::string tagName)
  {
-	 enum { ID_COUNT = 1, _BUFFER = 2, CRC = 3 , END = CRC };
-	 std::unique_ptr<shprotaBuff::ReadFrom>
-		 _unpacker =
-		 std::make_unique<shprotaBuff::ReadFrom>(buffer, CRC);
-	 
-	 if (*_unpacker->extract64(CRC) != crc(_unpacker->getBuffer(_BUFFER)))
-		 throw std::runtime_error("crc32 input buffer error!");
-	 init(_unpacker->getBuffer(_BUFFER), *_unpacker->extract32(ID_COUNT));
-	 return true;
+	 return extract64(umapInfo[tagName]);
+ }
+ /***************************************************/
+ void ReadFrom::getDesc(std::vector<uint8_t> buffer)
+ {
+	 enum { BUFFER = 1, ID = 2, _END = ID };
+	 std::unique_ptr<shprotaBuff::ReadFrom> descsBuffer =
+		 std::make_unique<shprotaBuff::ReadFrom>(buffer,_END);
+	 auto _count = descsBuffer->getCount();
+	 _count = *descsBuffer->extract32(2);
+	 auto _buffer = descsBuffer->getBuffer(1);
+
+	 std::unique_ptr<shprotaBuff::ReadFrom> descs =
+		 std::make_unique<shprotaBuff::ReadFrom>(_buffer, _count);
+
+	 for (size_t i = 1; i <= _count; ++i)
+	 {
+		 auto buffer_ = descs->getBuffer(i);
+		 std::unique_ptr<shprotaBuff::ReadFrom> desc =
+			 std::make_unique<shprotaBuff::ReadFrom>(buffer_,_END);
+		 auto name = desc->getString(1);
+		 auto Id = *desc->extract32(2);
+		 umapInfo[name] = Id;
+	 }
  }
 /***************************************************/
+ bool ReadFrom::operator<<(std::vector<uint8_t> buffer)
+ {
+	 enum { DESC_S = 1, ID_COUNT = 2, _BUFFER = 3, CRC = 4, END = CRC};
+	 std::unique_ptr<shprotaBuff::ReadFrom>
+		 _unpacker =
+		 std::make_unique<shprotaBuff::ReadFrom>(buffer, END);
+	 auto count = *(_unpacker->extract32(ID_COUNT));
+	// init(buffer, count);
+
+	 auto descs = (_unpacker->getBuffer(DESC_S));
+	 if (umapInfo.empty())
+			getDesc(descs);
+	 std::vector<uint8_t> _buffer  = _unpacker->getBuffer(_BUFFER);
+	 init(_buffer, count);
+	 auto _CRC = _unpacker->extract32(CRC);  
+	 if ( _CRC != crc(_buffer))
+		 throw std::runtime_error("crc32 input buffer error!");
+
+	 return true;
+ }
+ /***************************************************/
+ std::unordered_map<std::string, uint32_t> ReadFrom::getUmap(void)
+ {
+	 return(umapInfo);
+ }
+ /***************************************************/
  uint32_t ReadFrom::getCount(void)
  {
 	 return countOf;
@@ -133,7 +180,20 @@ namespace shprotaBuff
 	{
 		return (decode_varint_impl(dst, src));
 	}
-/***************************************************/
+ /***************************************************/
+ bool ReadFrom::checkField(std::string tagName)
+ {
+	 return (umapInfo.count(tagName) != 0);
+ }
+ /***************************************************/
+
+ /***************************************************/
+ std::vector<uint8_t>
+ ReadFrom::getBuffer(std::string tagName)
+ {
+	 return getBuffer(umapInfo[tagName]);
+ }
+ /***************************************************/
 	std::vector<uint8_t>
 	ReadFrom::getBuffer(uint32_t tag)
 	{
@@ -193,6 +253,11 @@ namespace shprotaBuff
 		std::vector<uint8_t> _Tmp = getBuffer(tag);
 		std::string str(_Tmp.begin(), _Tmp.end());
 		return (str);
+	}
+	/*************************************************************/
+	std::string ReadFrom::getString(std::string tagName)
+	{
+		return (getString(umapInfo[tagName]));
 	}
 	/*************************************************************/
 	inline  size_t ReadFrom::decode16(uint16_t& dst, std::vector<uint8_t> src)
@@ -255,5 +320,34 @@ namespace shprotaBuff
 		value |= static_cast<uint32_t>(bytes[3]);
 		return value;
 	}
+/*************************************************************/	
+	std::optional<std::tm> ReadFrom::getDateTime(int32_t tag)
+	{
+	 position = itearations[tag];
+		auto switchType = getTypeOf(tag);
+		if (!switchType)
+			return (std::nullopt);
+		if ((uint32_t)pbf_wire_type::datetime != *switchType)
+		{
+			std::ostringstream _exception_info;	
+		    _exception_info << "readed type mismatch! switchType" << *switchType << " Tag = " << tag << 
+			" file:line:func -  " <<	std::string(__FILE__)  <<  ":" << std::to_string(__LINE__) << ":" << std::string(&__FUNCTION__[0],&__FUNCTION__[strlen(__FUNCTION__)]);
+			throw std::runtime_error(_exception_info.str());
+		}
+		uint64_t tmp = 0;
+		std::vector<uint8_t> _buffer;
+		_buffer.resize(sizeof(std::uint64_t));
+		memmove(&_buffer[0], buffer.data() + position, sizeof(std::uint64_t));
+		decode64(tmp, _buffer);
+		time_t _ret = (static_cast<time_t>(tmp));
+		std::tm ret = *std::localtime(&_ret);
+		return ( ret );
+	}
+/*************************************************************/
+	std::optional<std::tm> ReadFrom::getDateTime(std::string tagName)
+	{
+		return getDateTime(umapInfo[tagName]);
+	}
+/*************************************************************/
 
 }

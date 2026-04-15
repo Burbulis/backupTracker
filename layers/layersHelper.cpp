@@ -2,6 +2,17 @@
 
 namespace Layers
 {
+	std::tm
+    layersHelper::
+    strToTime(std::string time_s)
+	{
+	    std::tm _tm = {};
+	    std::istringstream ss(time_s);
+	    ss >> std::get_time(&_tm,"%Y-%m-%d %H:%M:%S");
+	    return _tm;
+	}
+
+
     std::string  
     layersHelper::
     getFileGuid(void) const
@@ -105,14 +116,25 @@ namespace Layers
                     );
     }
 
-    std::optional <SQLCMD::types::ul_long> 
+  
+
+   std::optional <SQLCMD::types::ul_long> 
     layersHelper::getIdByGuid(std::string  guid)
     {
         return ( getlayerSomeThingRelationNameByName< std::string , SQLCMD::types::ul_long >
                         ("layerId","layerGuid",guid)
                     );
     }
-   
+ 
+    std::optional <std::tm> 
+    layersHelper::getTimeById(SQLCMD::types::ul_long layerId)
+    {
+        auto time =  getlayerSomeThingRelationNameByName<  SQLCMD::types::ul_long , std::string  >("layer_start","layerId",layerId);
+        std::tm _time = strToTime( *time ); 
+        return ( _time );
+    }
+
+
 
     SQLCMD::types::ul_long
     layersHelper::getFirstLayerId(void)
@@ -138,6 +160,23 @@ namespace Layers
     std::vector<SQLCMD::types::ul_long> layersHelper::getHashes(void)
     {
         return ( getlayerSomeThingByName< std::vector<SQLCMD::types::ul_long> >("layerHash") );
+    }
+
+    std::vector<SQLCMD::types::ul_long> layersHelper::getIds(void)
+    {
+        return ( getlayerSomeThingByName< std::vector< SQLCMD::types::ul_long > >("layerId") );
+    }
+ 
+    
+
+    std::vector<std::string> layersHelper::getGuids(void)
+    {
+        return ( getlayerSomeThingByName< std::vector< std::string > >("layerGuid") );
+    }
+
+    std::vector<std::string> layersHelper::getDateTimes(void)
+    {
+        return ( getlayerSomeThingByName< std::vector< std::string > >("layer_start") );
     }
 
 }

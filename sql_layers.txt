@@ -1,0 +1,1 @@
+SELECT DISTINCT blocks.layerHash AS layerHash  FROM buckets_and_blocks  inner join blocks on buckets_and_blocks.blockHash = blocks.blockHash where  buckets_and_blocks.fileGuid like '7d30e267-9b8e-41e2-b2ba-1ad01d1da14b'

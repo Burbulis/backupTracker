@@ -9,20 +9,15 @@
 #include <string>
 #include <stdexcept>
 #include <memory>
+#include <ctime>
 #include "baseBuff.hpp"
 namespace shprotaBuff
 {
 	class writeTo: protected baseBuff
 	{
+
 		std::vector<uint8_t> _buffer;
-		enum class pbf_wire_type : uint32_t {
-			varint = 0, // int32/64, uint32/64, sint32/64, bool, enum
-			fixed32 = 1,
-			fixed64 = 2, // fixed64, sfixed64, double
-			length_delimited = 3, // string, bytes, nested messages, packed repeated fields
-			 // fixed32, sfixed32, float
-			unknown = 99 // used for default setting in this library
-		};
+
 		uint32_t Id;
 
 		//uint32_t getTypeOf(uint32_t readed, uint32_t tag);
@@ -45,11 +40,12 @@ namespace shprotaBuff
 	public:
 		writeTo():Id(0){}
 		std::vector <uint8_t>	operator ()();
-		void add(uint32_t val);
-		void add(uint64_t val);
-		void add(std::vector<uint8_t> tmp);
-		void add(std::string str);
-		void add(uint8_t* tmp, size_t size);
+		void add(std::string name,uint32_t val);
+		void add(std::string name,uint64_t val);
+		void add(std::string name,std::vector<uint8_t> tmp);
+		void add(std::string name,std::string str);
+		void add(std::string name,std::tm& dateTime);
+		void add(std::string name, uint8_t* tmp, size_t size);
 		void setAttributes(uint32_t attribute);
 		uint32_t getId(void) const;
 		uint32_t getAttribute(uint32_t tag, pbf_wire_type type);

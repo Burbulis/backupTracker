@@ -2,13 +2,13 @@
 #define __TCP_CONNECTION__DB_QUERIES_
 
 #include "base.h"
-#include "DA_.hpp"
+#include "DA/DA_.hpp"
 #include "sql/SqClass.h"
-#include "miniCache.hpp"
+#include "cache/minicache.h"
 #include "iocrud.hpp"
-#include "dispatcher.hpp"
+#include "dispatch/dispatcher.hpp"
 #include "shprota/ReadFromBuff.h"
-#include "IOTRansactor.hpp"
+#include "IO/IOTRansactor.hpp"
 //#include "layers/layersHelper.hpp"
 //#include "BlocksAndLayers.hpp"
 #define _DEBUG_HEADER_TRAKT_ON_
@@ -113,7 +113,8 @@ private:
 		}
     }
 
-	#define DBG_STUB_BUCKETS_RD_HANDLER
+#define DBG_STUB_BUCKETS_RD_HANDLER
+
 	bool STUB_BUCKETS_RD_HANDLER(const boost::system::error_code &ec,size_t xfer)
 	{
 #ifdef DBG_STUB_BUCKETS_RD_HANDLER
@@ -161,7 +162,7 @@ private:
 	}
 
 
-	//#define DBG_HEADER_RD_HANDLER
+	#define DBG_HEADER_RD_HANDLER
 	#define DBG_GET_RECORDS_FOR_CHECKING
     void HEADER_RD_HANDLER(const boost::system::error_code &ec,size_t xfer)
 	{
@@ -178,10 +179,10 @@ private:
 		DA::mainDesc_s md =	mainDescExctractor();
 		_mreader.reinit(md.size);
 		DA::mainDescNorm faBuffer = DA::mainDescNorm(md);
-		#ifdef DBG_HEADER_RD_HANDLER	
-			_LOG::out_s << "md.fileGuid = " << md.fileGuid << " HEADER_SIZE =" << HEADER_SIZE  
+		#ifdef DBG_HEADER_RD_HANDLER
+			_LOG::out_s << "md.fileGuid = " << md.fileGuid << " md.layerGuid = " << md.layerGuid << " HEADER_SIZE =" << HEADER_SIZE  
 			<< " xfer = " << xfer << " md.size = "  << md.size <<  "  md.sessionId = " <<  md.sessionId  << " md.typeOf = " << md.typeOf << " faBuffer.blocks.size() = " 
-			<< faBuffer.blocks.size() << std::endl;
+			<< faBuffer.blocks.size() << " faBuffer.layerGuid = " << faBuffer.layerGuid << std::endl;
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
 			END()
 		#endif
@@ -267,101 +268,182 @@ private:
 	//#define DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 	DA::mainDescNorm mainDescAndBlocksExtractor(std::vector<uint8_t> buffer)
 	{
-	   enum {TYPE_OF =1 , FILENAME ,PATH,TOKEN,SESSION_ID,FILE_GUID,CREATION_TIME,LAST_ACCESS_TIME,LAST_WRITE_TIME,BUFFER};
+	  // enum {TYPE_OF =1 , FILENAME ,PATH,TOKEN,SESSION_ID,FILE_GUID,CREATION_TIME,LAST_ACCESS_TIME,LAST_WRITE_TIME,BUFFER,END = BUFFER};
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 		BEGIN()
 	#endif	
 
 		shprotaBuff::ReadFrom rf(buffer);
-
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
-		_LOG::out_s <<	" rf.getCount() = " << rf.getCount() << " BUFFER = " << BUFFER << std::endl;
+		auto umap = rf.getUmap();
+    for (auto v : umap)
+	{
+    		_LOG::out_s <<	" [" << v.first << "/" << v.second << "]" << std::endl;
+			 LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	}
+		#endif
+	 auto _blocks = rf.getBuffer("blocks");
+		
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		_LOG::out_s <<	" _blocks.size() = " << _blocks.size() << std::endl;//<< " BUFFER = " << BUFFER << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-		_LOG::out_s << " rf.getString(FILENAME)" << rf.getString(FILENAME);
+		_LOG::out_s <<	" rf.getCount() = " << rf.getCount() << std::endl;//<< " BUFFER = " << BUFFER << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-		_LOG::out_s << " rf.getString(FILENAME)" << rf.getString(PATH);
+		_LOG::out_s << " rf.getString(FILENAME)" << rf.getString("fileName");
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-		_LOG::out_s << "rf.getString(TOKEN)" << rf.getString(TOKEN);
+		_LOG::out_s << " rf.getString(PATH)" << rf.getString("pathFile");
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
-		_LOG::out_s <<" rf.getBuffer(BUFFER).size() = " << rf.getBuffer(BUFFER).size() << std::endl;
+		_LOG::out_s << "rf.getString(TOKEN)" << rf.getString("token");
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+		_LOG::out_s << " rf.getString(FILEGUID)" << rf.getString("fileGuid");
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+		if (rf.checkField("blocks"))
+		{
+			LOGTOFILE(LOGHTML::messageType::MESSAGE,"blocks - found!");
+		}
+		else
+		{
+			LOGTOFILE(LOGHTML::messageType::MESSAGE,"blocks - NOT found!");
+		}
+		_LOG::out_s <<" blocks = " << _blocks.size() << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif
 
-
-		shprotaBuff::ReadFrom blocks(rf.getBuffer(BUFFER));
-		std::vector<DA::tdataAttrib_s> _blocks;
+	
+		shprotaBuff::ReadFrom blocks(_blocks);
+		std::vector<DA::tdataAttrib_s> v_blocks;
 
 		const size_t finalCount = blocks.getCount(); 
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
-		_LOG::out_s <<	" finalCount = " << finalCount << std::endl;
+		_LOG::out_s <<	" blocks.getCount() = " << finalCount << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif
 
 	   //enum { ELAYERGUID = 1, EINDEX, EBLOCKGUID, ECHK, ESTATUS , EBUFFER };
       //  enum {  E_INDEX = 1, E_BLOCKGUID, E_CHK, E_STATUS ,E_BUFFER };
-         enum { E_BEGIN = 1, E_INDEX, E_BLOCKGUID, E_CHK, E_STATUS, E_BUFFER, E_END };
+       //  enum { E_BEGIN = 1, E_INDEX, E_BLOCKGUID, E_CHK, E_STATUS, E_BUFFER, E_END };
+
+		if (blocks.checkField("BinaryBuffers"))
+		{
+			LOGTOFILE(LOGHTML::messageType::MESSAGE,"(0)BinaryBuffers - detected!");
+		}
+		else
+		{
+			LOGTOFILE(LOGHTML::messageType::MESSAGE,"(0)BinaryBuffers - not detected!");
+		}
 
 		for (size_t i = 1; i <= finalCount; ++i)
 		{
 			DA::tdataAttrib_s attr;
-			shprotaBuff::ReadFrom block(blocks.getBuffer(i));
+			auto vBlock = blocks.getBuffer(i);
+			shprotaBuff::ReadFrom block(vBlock);
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		auto umap = block.getUmap();
+		for (auto v : umap)
+		{
+				_LOG::out_s <<	" [" << v.first << "/" << v.second << "]" << std::endl;
+				LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+		}
+	#endif		
 			//block.getCount()
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 		_LOG::out_s <<	" i = " << i <<  " block.getCount() == " << block.getCount() << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif		
-			attr.begin = block.getString(E_BEGIN);
+			attr.begin = block.getString("begin");
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 		_LOG::out_s <<	 " attr.begin = " << attr.begin << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif		
 
-			attr.index	= *block.extract64(E_INDEX);			
+			attr.index	= *block.extract64("index");			
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 		_LOG::out_s <<	 " attr.index = " << attr.index << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif		
-			attr.blockGuid 	= block.getString(E_BLOCKGUID);
+			attr.blockGuid 	= block.getString("blockGuid");
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 		_LOG::out_s <<	 " attr.blockGuid = " << attr.blockGuid << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+		if (block.checkField("chkSum"))
+			LOGTOFILE(LOGHTML::messageType::MESSAGE,"chkSum - found!");
 	#endif		
-			attr.chk 		= *block.extract64(E_CHK);
+		attr.chk 		= *block.extract64("chkSum");
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 		_LOG::out_s <<	 " attr.chk= " << attr.chk << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif	
-			attr.status 	= *block.extract32(E_STATUS);
+			
+			attr.status 	= *block.extract32("status");
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
-		_LOG::out_s <<	" attr.status = " << attr.status << " attr.blockGuid = " << attr.blockGuid << std::endl;
+		_LOG::out_s <<	" attr.status = " << attr.status << " attr.blockGuid = " << attr.blockGuid <<  std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif
 			if ((attr.status != DA::FILLERS::FILESIZE_REDUCTION) && (attr.status != DA::FILLERS::FILLER_IS_ZERO_FILE))
 			{
-	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,"FILESIZE_NOT_REDUCTED_OR_DELETED!");
-	#endif
-		
-				attr.buffer=  block.getBuffer(E_BUFFER);
-				attr.end		= block.getString(E_END);
+				attr.buffer		=  block.getBuffer("BinaryBuffer");
+				attr.end		=  block.getString("end");
 			}
 			else
 			{
-	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
-		LOGTOFILE(LOGHTML::messageType::MESSAGE,"FILESIZE_REDUCTED OR DELETED!");
-	#endif		
-				attr.end		= block.getString(E_END - 1);
+				attr.end		= block.getString("end");
 			}
-			
+			v_blocks.push_back(attr);		
+		} 
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
-		_LOG::out_s <<	" attr.end = " <<  attr.end << std::endl;
+		_LOG::out_s << "v_blocks.size() = " << v_blocks.size() <<std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif
-			_blocks.push_back(attr);
-		} 
-		DA::mainDescNorm md(rf.getString(FILE_GUID),rf.getString(TOKEN),rf.getString(SESSION_ID),
-		rf.getString(PATH),rf.getString(FILENAME), *rf.extract32(TYPE_OF),*rf.extract64(CREATION_TIME),
-		*rf.extract64(LAST_ACCESS_TIME),*rf.extract64(LAST_WRITE_TIME), _blocks);
+
+		auto fileGuid = rf.getString("fileGuid");
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		_LOG::out_s <<	" fileGuid = " <<  fileGuid << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+
+	
+		auto token = rf.getString("token");
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		_LOG::out_s <<	" token = " <<  token << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+		if (rf.checkField("sessionId"))
+			LOGTOFILE(LOGHTML::messageType::MESSAGE,"sessionId - found!");
+	
+	#endif
+
+
+		auto sessionId = rf.getString("sessionId");
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		_LOG::out_s <<	" sessionId = " <<  sessionId << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+	
+		auto filePath  = rf.getString("pathFile");
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		_LOG::out_s <<	" filePath = " <<  filePath << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+		auto fileName  = rf.getString("fileName");
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		_LOG::out_s <<	" fileName = " <<  fileName << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+
+		auto typeOf = *(rf.extract32("typeOf"));
+	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
+		_LOG::out_s <<	" typeOf = " <<  typeOf << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+
+
+
+		
+		auto creationTime = *(rf.extract64("creationTime"));
+		auto lastAccessTime = *(rf.extract64("lastAccessTime"));
+		auto lastWriteTime = *(rf.extract64("lastWriteTime"));
+		DA::mainDescNorm md(fileGuid,token,sessionId,
+		filePath,fileName, typeOf,creationTime,
+		lastAccessTime,lastWriteTime, v_blocks);
 		
 	#ifdef DBG_MAIN_DESC_AND_BLOCK_EXTRACTOR
 		END();
@@ -371,7 +453,7 @@ private:
 
 
 	//mainDesc
-	//#define DBG_MAIN_DESC_EXTRACTOR
+	#define DBG_MAIN_DESC_EXTRACTOR
 	
 	DA::mainDesc_s mainDescExctractor(void)
 	{
@@ -401,22 +483,72 @@ private:
 	#endif
 
 
-		enum{ TYPEOF = 1, FILE_GUID ,PATH,FILENAME, SESSION_ID,SIZE};	
+         enum { TYPEOF = 1, FILE_GUID =2, PATH = 3, FILENAME = 4, SESSION_ID = 5,LAYER_GUID = 6, SIZE = 7 };
+
 		shprotaBuff::ReadFrom rf(buffer);
 		
 	#ifdef DBG_MAIN_DESC_EXTRACTOR
 		_LOG::out_s <<	" rf.getCount() = " << rf.getCount() << std::endl;
 		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
 	#endif
-
 	
+		auto pathFile  = rf.getString("pathFile"); 
+	#ifdef DBG_MAIN_DESC_EXTRACTOR
+		_LOG::out_s <<	" pathFile = " << pathFile << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+
+		auto fileName  = rf.getString("fileName");
+	#ifdef DBG_MAIN_DESC_EXTRACTOR
+		_LOG::out_s <<	" fileName = " << fileName << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+
+		auto fileGuid  = rf.getString("fileGuid");
+	#ifdef DBG_MAIN_DESC_EXTRACTOR
+		_LOG::out_s <<	" fileGuid = " << fileGuid << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+		auto sessionId = rf.getString("sessionId");
+
+	#ifdef DBG_MAIN_DESC_EXTRACTOR
+		_LOG::out_s <<	" sessionId = " << sessionId << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+		if (rf.checkField("layerGuid"))
+		{
+			auto layerGuid = rf.getString("layerGuid");
+	#ifdef DBG_MAIN_DESC_EXTRACTOR
+		_LOG::out_s <<	" layerGuid = " << ((layerGuid.empty())? std::string("not detected") : layerGuid )<< std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+		}
+		if (rf.checkField("typeOf"))
+		{	
+			auto typeOf = *(rf.extract32("typeOf"));
+	#ifdef DBG_MAIN_DESC_EXTRACTOR
+		_LOG::out_s <<	" typeOf = " << typeOf << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+		}
+
+		if (rf.checkField("size"))
+		{	
+			auto size =   *(rf.extract64("size"));
+
+	#ifdef DBG_MAIN_DESC_EXTRACTOR
+		_LOG::out_s <<	" size = " << size << std::endl;
+		LOGTOFILE(LOGHTML::messageType::MESSAGE,_LOG::out_s);
+	#endif
+		}
 		DA::mainDesc_s md("NOT_HAVE_ANY_TOKEN",
-					rf.getString(PATH),
-					rf.getString(FILENAME),
-					rf.getString(FILE_GUID),
-					rf.getString(SESSION_ID),
-					*rf.extract32(TYPEOF),
-					*rf.extract64(SIZE)
+					rf.getString("pathFile"),
+					rf.getString("fileName"),
+					rf.getString("fileGuid"),
+					rf.getString("sessionId"),
+					rf.checkField("layerGuid")?rf.getString("layerGuid") : "",
+					rf.checkField("typeOf")? *(rf.extract32("typeOf")) : 0,
+					rf.checkField("size")? *(rf.extract64("size")) : 0
 				);
 		#ifdef DBG_MAIN_DESC_EXTRACTOR
 			END()

@@ -170,7 +170,9 @@ createNewLayer(void);
 		{
 			layers = layersAPI::getAllLayers();//передёргиваем слои в контейнере, 
 		}*/
-			
+	
+#define SOMETHING_BY_NAME_DEBUG		
+
 		template
 		<
 			typename T
@@ -178,8 +180,20 @@ createNewLayer(void);
 		typename std::enable_if< !std::is_integral<typename T::value_type>::value, T >::type
 		getlayerSomeThingByName(std::string field)
 		{
+	#ifdef SOMETHING_BY_NAME_DEBUG
+		{
+			BEGIN()
+			std::ostringstream out_s; out_s << "field(" << field <<")" << std::endl;	
+			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,out_s);
+		}
+				DBG_VIEW();
+	#endif			
+	
+	
 			return layers[field]; 
 		}
+
+
 
 	/// @brief вернуть соответствующий параметр слоя по имени
 	/// @tparam T -соответствующий контейнер, для заданного параметра слоя
@@ -192,9 +206,10 @@ createNewLayer(void);
 		typename std::enable_if< std::is_integral<typename T::value_type>::value, T >::type
 		getlayerSomeThingByName(std::string field)
 		{
-	#ifdef _DEBUG_UPDATE_RECORDS_ON_
+	#ifdef SOMETHING_BY_NAME_DEBUG
 		{
-			std::ostringstream out_s; out_s << "++getlayerSomeThingByName(" << field <<")" << std::endl;	
+			BEGIN()
+			std::ostringstream out_s; out_s << "field(" << field <<")" << std::endl;	
 			LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,out_s);
 		}
 				DBG_VIEW();

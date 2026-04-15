@@ -29,17 +29,20 @@ add_library(spf_writer STATIC shprota/WriteToBuff.cpp)
 
 # Библиотека CONFIG + Реализация Boost.JSON
 # Мы объединяем их, как вы делали в 'ar rcs libconfig.a libconfig.o boost_json_impl.o'
-add_library(spf_config STATIC config.cpp boost_json_impl.cpp)
+add_library(spf_config STATIC config/config.cpp boost_json_impl.cpp)
 
 # Библиотека LAYERS
 add_library(layers_helper STATIC layers/layersHelper.cpp)
 
+# the cachedRecords library
+add_library(mini_cache STATIC cache/minicache.cpp)
 # 3. Создаем исполняемый файл
 add_executable(result main.cpp)
 
 # 4. Линковка (CMake сам определит правильный порядок)
 target_link_libraries(result
     PRIVATE
+    mini_cache
     layers_helper
     spf_config
     spf_reader

@@ -3,7 +3,7 @@ rm ./obj/result
 g++ -c -ggdb -std=c++17 -I /home/kotus/boost_1_80_0 boost_json_impl.cpp \
 -o ./obj/boost_json_impl.o
 
-g++ -c -ggdb -std=c++17 -I /home/kotus/boost_1_80_0 config.cpp \
+g++ -c -ggdb -std=c++17 -I /home/kotus/boost_1_80_0 config/config.cpp \
 -o ./obj/libconfig.o
 ar rcs ./lib/libconfig.a ./obj/libconfig.o ./obj/boost_json_impl.o
 
@@ -17,11 +17,14 @@ g++ -c -ggdb -std=c++17 -I /home/kotus/boost_1_80_0 sql/SqClass.cpp -o ./obj/lib
 ar rcs ./lib/libsq_class.a ./obj/libsq_class.o
 g++ -c -ggdb -std=c++17 -I /home/kotus/boost_1_80_0 layers/layersHelper.cpp -o ./obj/lib_layershelper.o
 ar rcs ./lib/lib_layershelper.a ./obj/lib_layershelper.o
+g++ -c -ggdb -std=c++17 -I /home/kotus/boost_1_80_0 cache/minicache.cpp -o ./obj/lib_minicache.o
+ar rcs ./lib/lib_minicache.a ./obj/lib_minicache.o
+
 
 g++ -ggdb -std=c++17 -DBOOST_JSON_HEADER_ONLY  main.cpp \
 -I /home/kotus/boost_1_80_0 \
 -L ./lib \
--lconfig -lspf_reader -lspf_writer -llog -lsq_class -l_layershelper \
+-lconfig -lspf_reader -lspf_writer -llog -lsq_class -l_layershelper -l_minicache \
 -L /home/kotus/boost_1_80_0/stage/lib \
 -lboost_system -lboost_filesystem -lboost_thread  -lpthread -lsqlite3 \
 -o ./obj/result 2>&1 | tee out.log

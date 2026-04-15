@@ -1,7 +1,7 @@
 #include "base.h"
 //#include "BlocksAndLayers.hpp"
 #include "layers/layersHelper.h"
-#include "tempTable.hpp"
+#include "layers/tempTable.hpp"
 #include <future>
 #include <thread>
 #include <chrono>
@@ -266,10 +266,17 @@ namespace IO_CRUD
                     sqlInternalCacheInserters.add(query);
 
                 ret = (0 == faBuffer.blocks[i].end.compare("_FINA"));
- 
-                if (ret)
-                    break;
-
+            #ifdef EXEC_INSERT_CMD            
+                _LOG::out_s << "faBuffer.blocks[i].end = " << faBuffer.blocks[i].end << std::endl;
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,_LOG::out_s);
+            #endif
+                    if (ret)
+                    {
+            #ifdef EXEC_INSERT_CMD            
+                LOGTOFILE(LOGHTML::messageType::STRONG_WARNING,"_FINA - detected...");           
+            #endif
+                        break;
+                    }
                 }
                SQLCMD::valdesc::clearInstanceCounter();
             #ifdef EXEC_INSERT_CMD
